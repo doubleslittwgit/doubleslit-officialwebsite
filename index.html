@@ -1402,12 +1402,20 @@ const heroFringe = makeFringe(document.getElementById('herofringe'),
     gl.uniform1fv(uTh, thArr);
   }
 
+  let lastW = 0;
   function resize(){
     W=innerWidth; H=innerHeight;
     cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR);
     gl.viewport(0,0,cv.width,cv.height);
     gl.uniform2f(uRes, cv.width, cv.height);
-    placeSources();
+    // Mobile browsers fire 'resize' when the address bar collapses/expands
+    // during scroll, which only changes height. Re-randomising the wave
+    // sources on that would make the whole field jump mid-scroll, so sources
+    // are only re-placed when the width actually changes (a real layout change).
+    if(Math.abs(W - lastW) > 2){
+      lastW = W;
+      placeSources();
+    }
     if(window.__updateWaveMasks) window.__updateWaveMasks();
   }
   resize();
@@ -1496,6 +1504,8 @@ const heroFringe = makeFringe(document.getElementById('herofringe'),
   const bstr  = new Float32Array(NT);
   const bx = new Float32Array(NT), by = new Float32Array(NT);
   let head = 0, lastPX = 0, lastPY = 0, lastPT = 0, lastEmit = 0;
+  let touchActive = false;   // true only while a finger is actually down
+  const isTouchDevice = matchMedia('(pointer: coarse)').matches;
   let haveLast = false, smoothSpeed = 0;
 
   function pushSample(cx, cy, speed){
@@ -1517,11 +1527,25 @@ const heroFringe = makeFringe(document.getElementById('herofringe'),
       smoothSpeed += (inst - smoothSpeed) * 0.25;
     }
     lastPX = cx; lastPY = cy; lastPT = now; haveLast = true;
+    if(e.pointerType === 'touch') touchActive = true;
   }, {passive:true});
   addEventListener('pointerdown', e=>{
     lastPX = e.clientX*DPR;
     lastPY = (e.clientY*DPR) + (window.scrollY||0)*DPR;
     haveLast = true; smoothSpeed = 1.0;
+    if(e.pointerType === 'touch') touchActive = true;
+  }, {passive:true});
+  // Touch has no persistent "cursor": once the finger lifts, the wake must
+  // stop being re-emitted from that last touched point, otherwise a phantom
+  // ripple sits there forever as if a mouse were still hovering.
+  addEventListener('pointerup', e=>{
+    if(e.pointerType === 'touch'){ haveLast = false; touchActive = false; }
+  }, {passive:true});
+  addEventListener('pointercancel', e=>{
+    if(e.pointerType === 'touch'){ haveLast = false; touchActive = false; }
+  }, {passive:true});
+  addEventListener('pointerleave', e=>{
+    if(e.pointerType === 'touch'){ haveLast = false; touchActive = false; }
   }, {passive:true});
 
   function updateTrail(nowSec){
@@ -1565,8 +1589,12 @@ const heroFringe = makeFringe(document.getElementById('herofringe'),
       if(window.__updateWaveMasks) window.__updateWaveMasks();
     }
     // emit on a fixed clock so the wake is continuous whether the pointer is
-    // moving fast, drifting slowly, or completely stationary
-    if(haveLast && (now - lastEmit) >= EMIT){
+    // moving fast, drifting slowly, or completely stationary — but on
+    // touchscreens there is no ambient "cursor", so only emit while a
+    // finger is actually down, otherwise a phantom ripple would sit at the
+    // last-touched point forever, as if a mouse were still hovering there.
+    const canEmit = haveLast && (!isTouchDevice || touchActive);
+    if(canEmit && (now - lastEmit) >= EMIT){
       pushSample(lastPX, lastPY, smoothSpeed);
       lastEmit = now;
       smoothSpeed *= 0.7;          // decays toward calm when the pointer stops
