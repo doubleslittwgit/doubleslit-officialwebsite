@@ -91,6 +91,9 @@ h2.sec-title{
   position:fixed; inset:0; z-index:0; pointer-events:none;
   width:100%; height:100%; opacity:.9;
 }
+@media (max-width:900px){
+  #bg{ display:none; }   /* desktop-only effect; JS also enforces this */
+}
 /* ============================================================
    LOADER — stage 1: draw outline · stage 2: fill white bottom-up
    ============================================================ */
@@ -1104,6 +1107,12 @@ const heroFringe = makeFringe(document.getElementById('herofringe'),
 (function(){
   const cv = document.getElementById('bg');
   if(!cv) return;
+  // The background wave field (and its cursor/touch interaction) is a
+  // desktop-only effect. On phones and tablets it is switched off entirely:
+  // no canvas, no WebGL context, no per-frame work, no touch listeners.
+  const isMobileOrTouch = Math.min(innerWidth, innerHeight) <= 900
+                        || matchMedia('(pointer: coarse)').matches;
+  if(isMobileOrTouch){ cv.style.display = 'none'; return; }
   const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const gl = cv.getContext('webgl', {alpha:true, premultipliedAlpha:false, antialias:false});
   if(!gl){ return; }   // no WebGL → leave the black background
