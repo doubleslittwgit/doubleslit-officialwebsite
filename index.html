@@ -455,46 +455,12 @@ section.band{
 }
 .detail-right:hover::-webkit-scrollbar-thumb{ background:rgba(238,234,225,.48); }
 
-/* ---- video player ---- */
+/* ---- video: a YouTube embed fills the wrap edge-to-edge ---- */
 .dv-wrap{
   position:relative; width:100%; height:100%; background:#000;
-  overflow:hidden; cursor:pointer;
+  overflow:hidden;
 }
-.dv-wrap video{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; background:#000; }
-.dv-bigplay{
-  position:absolute; inset:0; margin:auto; width:64px; height:64px; border-radius:50%;
-  background:rgba(0,0,0,.5); color:#fff; font-size:22px;
-  display:flex; align-items:center; justify-content:center;
-  opacity:1; transition:opacity .25s;
-}
-.dv-wrap.playing .dv-bigplay{ opacity:0; pointer-events:none; }
-.dv-controls{
-  position:absolute; left:0; right:0; bottom:0; z-index:2;
-  display:flex; align-items:center; gap:10px; padding:9px 12px;
-  background:linear-gradient(180deg, transparent, rgba(0,0,0,.55) 40%, rgba(0,0,0,.72));
-  opacity:0; transform:translateY(6px); transition:opacity .25s, transform .25s;
-}
-.dv-wrap:hover .dv-controls, .dv-wrap.playing:hover .dv-controls, .dv-wrap.show-controls .dv-controls{
-  opacity:1; transform:none;
-}
-.dv-btn{ flex:none; width:26px; height:26px; color:#fff; font-size:15px; display:flex; align-items:center; justify-content:center; }
-.dv-time{ flex:none; font-family:var(--mono); font-size:11px; color:#fff; min-width:32px; }
-.dv-bar{
-  position:relative; flex:1; height:14px; display:flex; align-items:center; cursor:pointer;
-}
-.dv-bar::before{ content:""; position:absolute; left:0; right:0; height:3px; background:rgba(255,255,255,.28); }
-.dv-fill{ position:absolute; left:0; height:3px; width:0%; background:var(--fringe); pointer-events:none; }
-.dv-fill::after{
-  content:""; position:absolute; right:-5px; top:50%; transform:translateY(-50%);
-  width:10px; height:10px; border-radius:50%; background:var(--fringe);
-}
-.dv-tooltip{
-  position:absolute; bottom:20px; transform:translateX(-50%);
-  background:rgba(0,0,0,.85); color:#fff; font-family:var(--mono); font-size:11px;
-  padding:4px 7px; border-radius:3px; white-space:nowrap;
-  opacity:0; pointer-events:none; transition:opacity .15s;
-}
-.dv-bar:hover .dv-tooltip{ opacity:1; }
+.dv-wrap iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
 
 /* ---- gallery: sits below the description, last in the reading order ---- */
 .detail-gallery{
@@ -956,19 +922,10 @@ footer{
     <div class="detail-grid">
       <div class="detail-left">
         <div class="dv-wrap" id="dvWrap">
-          <video id="detailVideo" playsinline preload="none"></video>
-          <button class="dv-bigplay" id="dvBigPlay" aria-label="Play">&#9654;</button>
-          <div class="dv-controls" id="dvControls">
-            <button class="dv-btn" id="dvPlay" aria-label="Play / Pause">&#9654;</button>
-            <span class="dv-time" id="dvCur">0:00</span>
-            <div class="dv-bar" id="dvBar">
-              <div class="dv-fill" id="dvFill"></div>
-              <div class="dv-tooltip" id="dvTooltip"></div>
-            </div>
-            <span class="dv-time" id="dvDur">0:00</span>
-            <button class="dv-btn" id="dvVol" aria-label="Mute">&#128266;</button>
-            <button class="dv-btn" id="dvFull" aria-label="Fullscreen">&#9974;</button>
-          </div>
+          <iframe id="detailYT" src="" title="Project video"
+            loading="lazy" frameborder="0"
+            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
+            allowfullscreen></iframe>
         </div>
       </div>
       <div class="detail-right" id="detailRight">
@@ -1079,13 +1036,13 @@ const T = {
       {k:"05",n:"企業PV / マルチメディア",d:"企業紹介動画からイベント、展示会、不動産、SNS向け動画まで。企業ごとのニーズに応えるメディアを制作し、ブランドの価値を引き上げます。",t:["企業紹介動画","不動産紹介","展示会コンテンツ","イベント記録"]}
     ],
     work:[
-      {t:"COMPUTEX FORUM 2026 — SIEMENS",c:"corp",y:"2026",cn:"企業コンセプトフィルム",role:"3DCG / モーショングラフィックス / サウンドデザイン",media:"assets/work/computex_2026_siemens/",hover:true,tabDir:"assets/work/computex_2026_siemens/tab/",tabVideo:"tab.mp4",tabImages:["1.png","2.png","3.png","4.png"],detailDesc:"COMPUTEX FORUM 2026にて、SIEMENSのプレゼンテーションを彩るオープニングムービーを制作。SIEMENSが描く未来のビジョンを「AI × Automation × Mobility」を軸としたフル3DCG映像として表現し、企画・コンセプト設計からプリビズ、3DCG制作、映像演出、コンポジット、最終納品までの全工程を一貫して担当しました。空間・モビリティ・インフラ・自動化がシームレスにつながる未来の世界を、緻密な3D表現とダイナミックなカメラワークによって構築。複雑なテクノロジーや未来像を単なるメッセージとして伝えるのではなく、観客が直感的に体験できるビジュアルへと昇華し、世界的なテクノロジーイベントの舞台にふさわしい、強いインパクトを持つブランド映像として実現しました。"},
+      {t:"COMPUTEX FORUM 2026 — SIEMENS",c:"corp",y:"2026",cn:"企業コンセプトフィルム",role:"3DCG / モーショングラフィックス / サウンドデザイン",media:"assets/work/computex_2026_siemens/",hover:true,tabDir:"assets/work/computex_2026_siemens/tab/images/",embedUrl:"https://player.mediadelivery.net/embed/742300/5c269504-cc6b-426d-9149-b50ccb3fcda1?autoplay=true&loop=false&muted=true&preload=true&responsive=true",tabImages:["1.png","2.png","3.png","4.png"],detailDesc:"COMPUTEX FORUM 2026にて、SIEMENSのプレゼンテーションを彩るオープニングムービーを制作。SIEMENSが描く未来のビジョンを「AI × Automation × Mobility」を軸としたフル3DCG映像として表現し、企画・コンセプト設計からプリビズ、3DCG制作、映像演出、コンポジット、最終納品までの全工程を一貫して担当しました。空間・モビリティ・インフラ・自動化がシームレスにつながる未来の世界を、緻密な3D表現とダイナミックなカメラワークによって構築。複雑なテクノロジーや未来像を単なるメッセージとして伝えるのではなく、観客が直感的に体験できるビジュアルへと昇華し、世界的なテクノロジーイベントの舞台にふさわしい、強いインパクトを持つブランド映像として実現しました。"},
       {t:"FILM1",c:"corp",y:"",cn:"",media:"assets/work/film1/"},
       {t:"FILM2",c:"corp",y:"",cn:"",media:"assets/work/film2/",o:"tall"},
       {t:"FILM3",c:"corp",y:"",cn:"",media:"assets/work/film3/",o:"tall"},
       {t:"MSI",c:"corp",y:"",cn:"",media:"assets/work/msi/"},
-      {t:"CM1",c:"corp",y:"",cn:"",media:"assets/work/cm1/"},
-      {t:"CM2",c:"corp",y:"",cn:"",media:"assets/work/cm2/"},
+      {t:"PANASONIC",c:"corp",y:"",cn:"",media:"assets/work/panasonic/"},
+      {t:"KEIKYU",c:"corp",y:"",cn:"",media:"assets/work/keikyu/"},
       {t:"MV",c:"corp",y:"",cn:"",media:"assets/work/mv/"},
       {t:"SERECOOP",c:"corp",y:"",cn:"",media:"assets/work/serecoop/"},
       {t:"TWQR",c:"corp",y:"",cn:"",media:"assets/work/twqr/",o:"tall",focus:"50% 22%"},
@@ -1118,13 +1075,13 @@ const T = {
       {k:"05",n:"Brand Film & Multimedia",d:"From company profile films to events, trade shows, real estate and social content. We build the media each client actually needs, and raise the value of the brand behind it.",t:["Company profile film","Real estate film","Exhibition content","Event coverage"]}
     ],
     work:[
-      {t:"COMPUTEX FORUM 2026 — SIEMENS",c:"corp",y:"2026",cn:"Corporate Concept Film",role:"3D CG / Motion Graphics / Sound Design",media:"assets/work/computex_2026_siemens/",hover:true,tabDir:"assets/work/computex_2026_siemens/tab/",tabVideo:"tab.mp4",tabImages:["1.png","2.png","3.png","4.png"],detailDesc:"Produced the opening film for Siemens' keynote presentation at COMPUTEX FORUM 2026. We translated Siemens' vision of the future — built around AI, Automation and Mobility — into a fully 3D CG film, handling every stage in house: concept and creative direction, previs, 3D CG production, visual direction, compositing and final delivery. The film builds a future where space, mobility, infrastructure and automation flow together seamlessly, through precise 3D craft and dynamic camera work. Rather than stating complex technology as a message, we elevated it into visuals an audience can grasp instantly — a brand film with the impact a world-class tech stage demands."},
+      {t:"COMPUTEX FORUM 2026 — SIEMENS",c:"corp",y:"2026",cn:"Corporate Concept Film",role:"3D CG / Motion Graphics / Sound Design",media:"assets/work/computex_2026_siemens/",hover:true,tabDir:"assets/work/computex_2026_siemens/tab/images/",embedUrl:"https://player.mediadelivery.net/embed/742300/5c269504-cc6b-426d-9149-b50ccb3fcda1?autoplay=true&loop=false&muted=true&preload=true&responsive=true",tabImages:["1.png","2.png","3.png","4.png"],detailDesc:"Produced the opening film for Siemens' keynote presentation at COMPUTEX FORUM 2026. We translated Siemens' vision of the future — built around AI, Automation and Mobility — into a fully 3D CG film, handling every stage in house: concept and creative direction, previs, 3D CG production, visual direction, compositing and final delivery. The film builds a future where space, mobility, infrastructure and automation flow together seamlessly, through precise 3D craft and dynamic camera work. Rather than stating complex technology as a message, we elevated it into visuals an audience can grasp instantly — a brand film with the impact a world-class tech stage demands."},
       {t:"FILM1",c:"corp",y:"",cn:"",media:"assets/work/film1/"},
       {t:"FILM2",c:"corp",y:"",cn:"",media:"assets/work/film2/",o:"tall"},
       {t:"FILM3",c:"corp",y:"",cn:"",media:"assets/work/film3/",o:"tall"},
       {t:"MSI",c:"corp",y:"",cn:"",media:"assets/work/msi/"},
-      {t:"CM1",c:"corp",y:"",cn:"",media:"assets/work/cm1/"},
-      {t:"CM2",c:"corp",y:"",cn:"",media:"assets/work/cm2/"},
+      {t:"PANASONIC",c:"corp",y:"",cn:"",media:"assets/work/panasonic/"},
+      {t:"KEIKYU",c:"corp",y:"",cn:"",media:"assets/work/keikyu/"},
       {t:"MV",c:"corp",y:"",cn:"",media:"assets/work/mv/"},
       {t:"SERECOOP",c:"corp",y:"",cn:"",media:"assets/work/serecoop/"},
       {t:"TWQR",c:"corp",y:"",cn:"",media:"assets/work/twqr/",o:"tall",focus:"50% 22%"},
@@ -1157,13 +1114,13 @@ const T = {
       {k:"05",n:"企業宣傳片／多媒體",d:"從企業介紹影片到活動、展會、地產、社交媒體影像，涵蓋多種類型。根據企業各自的需求製作媒體內容，提升品牌價值。",t:["企業介紹影片","地產介紹","展會內容","活動紀錄"]}
     ],
     work:[
-      {t:"COMPUTEX FORUM 2026 — SIEMENS",c:"corp",y:"2026",cn:"企業概念影片",role:"三維CG / 動態圖形 / 聲音設計",media:"assets/work/computex_2026_siemens/",hover:true,tabDir:"assets/work/computex_2026_siemens/tab/",tabVideo:"tab.mp4",tabImages:["1.png","2.png","3.png","4.png"],detailDesc:"為COMPUTEX FORUM 2026上西門子（SIEMENS）的主題演講製作開場影片。以「AI × 自動化 × 移動性」為主軸，將西門子描繪的未來願景以全三維CG影像呈現，並一手包辦從企劃、概念設計、預演、三維CG製作、影像演出、合成到最終交付的全部流程。透過精密的三維表現與充滿動感的運鏡，構築出空間、移動、基礎設施與自動化無縫串聯的未來世界。不僅僅是傳達複雜科技與未來願景的訊息，更將其昇華為觀眾能夠直覺感受的視覺體驗，實現了足以匹配世界級科技盛會舞台、極具震撼力的品牌影片。"},
+      {t:"COMPUTEX FORUM 2026 — SIEMENS",c:"corp",y:"2026",cn:"企業概念影片",role:"三維CG / 動態圖形 / 聲音設計",media:"assets/work/computex_2026_siemens/",hover:true,tabDir:"assets/work/computex_2026_siemens/tab/images/",embedUrl:"https://player.mediadelivery.net/embed/742300/5c269504-cc6b-426d-9149-b50ccb3fcda1?autoplay=true&loop=false&muted=true&preload=true&responsive=true",tabImages:["1.png","2.png","3.png","4.png"],detailDesc:"為COMPUTEX FORUM 2026上西門子（SIEMENS）的主題演講製作開場影片。以「AI × 自動化 × 移動性」為主軸，將西門子描繪的未來願景以全三維CG影像呈現，並一手包辦從企劃、概念設計、預演、三維CG製作、影像演出、合成到最終交付的全部流程。透過精密的三維表現與充滿動感的運鏡，構築出空間、移動、基礎設施與自動化無縫串聯的未來世界。不僅僅是傳達複雜科技與未來願景的訊息，更將其昇華為觀眾能夠直覺感受的視覺體驗，實現了足以匹配世界級科技盛會舞台、極具震撼力的品牌影片。"},
       {t:"FILM1",c:"corp",y:"",cn:"",media:"assets/work/film1/"},
       {t:"FILM2",c:"corp",y:"",cn:"",media:"assets/work/film2/",o:"tall"},
       {t:"FILM3",c:"corp",y:"",cn:"",media:"assets/work/film3/",o:"tall"},
       {t:"MSI",c:"corp",y:"",cn:"",media:"assets/work/msi/"},
-      {t:"CM1",c:"corp",y:"",cn:"",media:"assets/work/cm1/"},
-      {t:"CM2",c:"corp",y:"",cn:"",media:"assets/work/cm2/"},
+      {t:"PANASONIC",c:"corp",y:"",cn:"",media:"assets/work/panasonic/"},
+      {t:"KEIKYU",c:"corp",y:"",cn:"",media:"assets/work/keikyu/"},
       {t:"MV",c:"corp",y:"",cn:"",media:"assets/work/mv/"},
       {t:"SERECOOP",c:"corp",y:"",cn:"",media:"assets/work/serecoop/"},
       {t:"TWQR",c:"corp",y:"",cn:"",media:"assets/work/twqr/",o:"tall",focus:"50% 22%"},
@@ -1856,23 +1813,7 @@ const detailDesc    = document.getElementById('detailDesc');
 const detailGallery = document.getElementById('detailGallery');
 const detailRole    = document.getElementById('detailRole');
 const detailRight   = document.getElementById('detailRight');
-const dVideo   = document.getElementById('detailVideo');
-const dvWrap   = document.getElementById('dvWrap');
-const dvBigPlay= document.getElementById('dvBigPlay');
-const dvPlay   = document.getElementById('dvPlay');
-const dvCur    = document.getElementById('dvCur');
-const dvDur    = document.getElementById('dvDur');
-const dvBar    = document.getElementById('dvBar');
-const dvFill   = document.getElementById('dvFill');
-const dvTooltip= document.getElementById('dvTooltip');
-const dvVol    = document.getElementById('dvVol');
-const dvFull   = document.getElementById('dvFull');
-
-function fmtTime(s){
-  if(!isFinite(s)) return '0:00';
-  const m = Math.floor(s/60), sec = Math.floor(s%60);
-  return m + ':' + String(sec).padStart(2,'0');
-}
+const detailYT = document.getElementById('detailYT');
 
 function openDetail(p){
   const L = T[document.body.dataset.lang || 'ja'];
@@ -1893,13 +1834,12 @@ function openDetail(p){
     detailGallery.appendChild(img);
   });
 
-  dVideo.pause();
-  dVideo.removeAttribute('src');
-  dVideo.src = encodeURI(p.tabDir + p.tabVideo);
-  dVideo.load();
-  dvWrap.classList.remove('playing');
-  dvFill.style.width = '0%';
-  dvCur.textContent = '0:00'; dvDur.textContent = '0:00';
+  // Video is hosted on Bunny Stream (large source files exceed Cloudflare
+  // Pages' per-file size limit), so the "player" is just an embed. Bunny
+  // Stream's player already ships a minimal skin close to the reference UI
+  // (bottom-left play, thin scrubber, bottom-right volume/fullscreen), so no
+  // custom controls are layered on top of it.
+  detailYT.src = p.embedUrl || '';
   detailRight.scrollTop = 0;   // start the (only) scrollbar at the top on every open
 
   detailModal.classList.add('open');
@@ -1910,66 +1850,11 @@ function closeDetail(){
   detailModal.classList.remove('open');
   detailModal.setAttribute('aria-hidden','true');
   document.body.style.overflow = '';
-  dVideo.pause();
+  detailYT.src = '';   // stop playback by clearing the embed
 }
 detailClose.addEventListener('click', closeDetail);
 detailBackdrop.addEventListener('click', closeDetail);
 addEventListener('keydown', e=>{ if(e.key==='Escape' && detailModal.classList.contains('open')) closeDetail(); });
-
-/* ---- custom video player, matching the reference UI ---- */
-function toggleDVPlay(){
-  if(dVideo.paused) dVideo.play().catch(()=>{});
-  else dVideo.pause();
-}
-dvWrap.addEventListener('click', e=>{
-  if(e.target.closest('.dv-controls')) return;   // clicks on the control bar don't toggle play
-  toggleDVPlay();
-});
-dvPlay.addEventListener('click', e=>{ e.stopPropagation(); toggleDVPlay(); });
-dVideo.addEventListener('play', ()=>{
-  dvWrap.classList.add('playing');
-  dvPlay.innerHTML = '&#10074;&#10074;'; dvBigPlay.innerHTML = '&#10074;&#10074;';
-});
-dVideo.addEventListener('pause', ()=>{
-  dvWrap.classList.remove('playing');
-  dvPlay.innerHTML = '&#9654;'; dvBigPlay.innerHTML = '&#9654;';
-});
-dVideo.addEventListener('loadedmetadata', ()=>{ dvDur.textContent = fmtTime(dVideo.duration); });
-dVideo.addEventListener('timeupdate', ()=>{
-  if(dVideo.duration){
-    dvFill.style.width = (dVideo.currentTime/dVideo.duration*100) + '%';
-    dvCur.textContent = fmtTime(dVideo.currentTime);
-  }
-});
-
-function seekFromEvent(e){
-  const r = dvBar.getBoundingClientRect();
-  const x = (e.clientX ?? e.touches?.[0]?.clientX ?? r.left) - r.left;
-  const frac = Math.min(1, Math.max(0, x / r.width));
-  return frac;
-}
-dvBar.addEventListener('click', e=>{
-  e.stopPropagation();
-  if(dVideo.duration) dVideo.currentTime = seekFromEvent(e) * dVideo.duration;
-});
-dvBar.addEventListener('mousemove', e=>{
-  if(!dVideo.duration) return;
-  const frac = seekFromEvent(e);
-  const r = dvBar.getBoundingClientRect();
-  dvTooltip.style.left = (frac * r.width) + 'px';
-  dvTooltip.textContent = fmtTime(frac * dVideo.duration);
-});
-
-dvVol.addEventListener('click', e=>{
-  e.stopPropagation();
-  dVideo.muted = !dVideo.muted;
-  dvVol.innerHTML = dVideo.muted ? '&#128263;' : '&#128266;';
-});
-dvFull.addEventListener('click', e=>{
-  e.stopPropagation();
-  if(dvWrap.requestFullscreen) dvWrap.requestFullscreen().catch(()=>{});
-  else if(dVideo.webkitEnterFullscreen) dVideo.webkitEnterFullscreen();
-});
 
 function buildWork(L){
   tileFringes.forEach(f=>f.destroy());
@@ -1997,8 +1882,8 @@ function buildWork(L){
     serecoop:              [5, 7, 3, 1],
 
     // CM1 / CM2 sit as their own row, roughly in the middle of the wall
-    cm1:                   [0, 6, 4, 1],
-    cm2:                   [6, 6, 4, 1],
+    panasonic:             [0, 6, 4, 1],
+    keikyu:                [6, 6, 4, 1],
 
     mv:                    [0, 7, 5, 1],
     vj:                    [7, 5, 5, 1],
@@ -2072,7 +1957,7 @@ function buildWork(L){
         a.addEventListener('click', e=>{
           // a project with a full detail page always opens that on click,
           // on any device — the inline hover preview is just a teaser
-          if(p.tabVideo){ e.preventDefault(); openDetail(p); return; }
+          if(p.embedUrl){ e.preventDefault(); openDetail(p); return; }
           if(matchMedia('(hover: hover)').matches) return;
           if(!a.classList.contains('is-active')){
             e.preventDefault();
@@ -2082,7 +1967,7 @@ function buildWork(L){
             a.classList.add('is-active'); play();
           }
         });
-      } else if(p.tabVideo){
+      } else if(p.embedUrl){
         a.addEventListener('click', e=>{ e.preventDefault(); openDetail(p); });
       }
       grid.appendChild(a);
