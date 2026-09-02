@@ -433,7 +433,10 @@ section.band{
 .detail-left{
   min-width:0; height:100%;
   display:flex; align-items:center;
-  padding:clamp(10px,1.4vw,18px) 0;   /* a little air top/bottom; none left/right */
+  /* left padding matches the right column's own inner padding, so the video
+     reads as evenly framed rather than flush-left with a gap only on its
+     right (which was really just the text column's padding showing through) */
+  padding:clamp(10px,1.4vw,18px) 0 clamp(10px,1.4vw,18px) clamp(22px,2.6vw,36px);
 }
 
 /* The RIGHT column is the ONLY thing that scrolls. The panel and the left
@@ -1081,6 +1084,8 @@ const T = {
       {t:"FILM2",c:"corp",y:"",cn:"",media:"assets/work/film2/",o:"tall"},
       {t:"FILM3",c:"corp",y:"",cn:"",media:"assets/work/film3/",o:"tall"},
       {t:"MSI",c:"corp",y:"",cn:"",media:"assets/work/msi/"},
+      {t:"CM1",c:"corp",y:"",cn:"",media:"assets/work/cm1/"},
+      {t:"CM2",c:"corp",y:"",cn:"",media:"assets/work/cm2/"},
       {t:"MV",c:"corp",y:"",cn:"",media:"assets/work/mv/"},
       {t:"SERECOOP",c:"corp",y:"",cn:"",media:"assets/work/serecoop/"},
       {t:"TWQR",c:"corp",y:"",cn:"",media:"assets/work/twqr/",o:"tall",focus:"50% 22%"},
@@ -1118,6 +1123,8 @@ const T = {
       {t:"FILM2",c:"corp",y:"",cn:"",media:"assets/work/film2/",o:"tall"},
       {t:"FILM3",c:"corp",y:"",cn:"",media:"assets/work/film3/",o:"tall"},
       {t:"MSI",c:"corp",y:"",cn:"",media:"assets/work/msi/"},
+      {t:"CM1",c:"corp",y:"",cn:"",media:"assets/work/cm1/"},
+      {t:"CM2",c:"corp",y:"",cn:"",media:"assets/work/cm2/"},
       {t:"MV",c:"corp",y:"",cn:"",media:"assets/work/mv/"},
       {t:"SERECOOP",c:"corp",y:"",cn:"",media:"assets/work/serecoop/"},
       {t:"TWQR",c:"corp",y:"",cn:"",media:"assets/work/twqr/",o:"tall",focus:"50% 22%"},
@@ -1155,6 +1162,8 @@ const T = {
       {t:"FILM2",c:"corp",y:"",cn:"",media:"assets/work/film2/",o:"tall"},
       {t:"FILM3",c:"corp",y:"",cn:"",media:"assets/work/film3/",o:"tall"},
       {t:"MSI",c:"corp",y:"",cn:"",media:"assets/work/msi/"},
+      {t:"CM1",c:"corp",y:"",cn:"",media:"assets/work/cm1/"},
+      {t:"CM2",c:"corp",y:"",cn:"",media:"assets/work/cm2/"},
       {t:"MV",c:"corp",y:"",cn:"",media:"assets/work/mv/"},
       {t:"SERECOOP",c:"corp",y:"",cn:"",media:"assets/work/serecoop/"},
       {t:"TWQR",c:"corp",y:"",cn:"",media:"assets/work/twqr/",o:"tall",focus:"50% 22%"},
@@ -1973,9 +1982,9 @@ function buildWork(L){
   // rowSpan] on a 12-column grid where one landscape tile is 1 row tall and a
   // portrait poster is 2.
   const LAYOUT = {
-    // Composed as brickwork: the vertical seams shift from row to row (7 -> 4,8
-    // -> 5 -> 4 -> 7) so joints never line up into a cross, which is what makes
-    // a tiled wall read as deliberate rather than as a spreadsheet.
+    // Composed as brickwork: the vertical seams shift from row to row so
+    // joints never line up into a cross, which is what makes a tiled wall
+    // read as deliberate rather than as a spreadsheet.
     computex_2026_siemens: [0, 7, 0, 1],
     film1:                 [7, 5, 0, 1],
 
@@ -1987,11 +1996,15 @@ function buildWork(L){
     msi:                   [0, 5, 3, 1],
     serecoop:              [5, 7, 3, 1],
 
-    mv:                    [0, 7, 4, 1],
-    vj:                    [7, 5, 4, 1],
+    // CM1 / CM2 sit as their own row, roughly in the middle of the wall
+    cm1:                   [0, 6, 4, 1],
+    cm2:                   [6, 6, 4, 1],
 
-    xinzhu:                [0, 5, 5, 1],
-    hanlin:                [5, 7, 5, 1]
+    mv:                    [0, 7, 5, 1],
+    vj:                    [7, 5, 5, 1],
+
+    xinzhu:                [0, 5, 6, 1],
+    hanlin:                [5, 7, 6, 1]
   };
 
   const slugOf = p => (p.media || '').replace(/^assets\/work\//,'').replace(/\/$/,'');
