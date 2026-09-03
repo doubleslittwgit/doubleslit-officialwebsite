@@ -298,10 +298,15 @@ section.band{
 .grid{
   display:grid; grid-template-columns:repeat(12,1fr);
   gap:clamp(6px,0.7vw,12px);
-  /* Rows are a fixed height and every tile is placed explicitly, so tiles
-     always align. Landscape tiles take one row; portrait tiles take two,
-     which is why the row height is roughly half a landscape tile. */
-  grid-auto-rows:clamp(130px, 25vw, 440px);
+  /* Every row is the same fixed height EXCEPT row index 3 (the three-poster
+     row), which is 2x taller so those portrait tiles read as a proper
+     poster shape instead of a cramped sliver, while every other row keeps
+     the standard brick-wall height. */
+  --row-h: clamp(130px, 25vw, 440px);
+  grid-template-rows:
+    var(--row-h) var(--row-h) var(--row-h)
+    calc(var(--row-h) * 2)
+    repeat(3, var(--row-h));
   align-items:stretch;
   /* break out of .wrap (1400px) and the section's side padding, so the wall
      forms one wide rectangle with only a small margin at the page edges */
@@ -698,7 +703,7 @@ footer{
   .mark-copy, .sec-head, .cap-inner{ grid-template-columns:1fr; }
   /* single column on phones; portrait tiles still get extra height */
   .tile{ grid-column:1 / span 12 !important; grid-row:auto !important; margin:0 !important; }
-  .grid{ grid-auto-rows:auto; }
+  .grid{ grid-auto-rows:auto; grid-template-rows:none; }
   .tile{ aspect-ratio:16/9; }
   .tile.tile-tall{ aspect-ratio:3/4; }
   .grid, #work .sec-head{
@@ -1039,13 +1044,15 @@ const T = {
       {t:"COMPUTEX FORUM 2026 — SIEMENS",c:"corp",y:"2026",cn:"企業コンセプトフィルム",role:"3DCG / モーショングラフィックス / サウンドデザイン",media:"assets/work/computex_2026_siemens/",hover:true,tabDir:"assets/work/computex_2026_siemens/tab/images/",embedUrl:"https://player.mediadelivery.net/embed/742300/5c269504-cc6b-426d-9149-b50ccb3fcda1?autoplay=true&loop=false&muted=true&preload=true&responsive=true",tabImages:["1.png","2.png","3.png","4.png"],detailDesc:"COMPUTEX FORUM 2026にて、SIEMENSのプレゼンテーションを彩るオープニングムービーを制作。SIEMENSが描く未来のビジョンを「AI × Automation × Mobility」を軸としたフル3DCG映像として表現し、企画・コンセプト設計からプリビズ、3DCG制作、映像演出、コンポジット、最終納品までの全工程を一貫して担当しました。空間・モビリティ・インフラ・自動化がシームレスにつながる未来の世界を、緻密な3D表現とダイナミックなカメラワークによって構築。複雑なテクノロジーや未来像を単なるメッセージとして伝えるのではなく、観客が直感的に体験できるビジュアルへと昇華し、世界的なテクノロジーイベントの舞台にふさわしい、強いインパクトを持つブランド映像として実現しました。"},
       {t:"FILM1",c:"corp",y:"",cn:"",media:"assets/work/film1/"},
       {t:"FILM2",c:"corp",y:"",cn:"",media:"assets/work/film2/",o:"tall"},
-      {t:"FILM3",c:"corp",y:"",cn:"",media:"assets/work/film3/",o:"tall"},
+      {t:"FILM3",c:"corp",y:"",cn:"",media:"assets/work/film3/"},
       {t:"MSI",c:"corp",y:"",cn:"",media:"assets/work/msi/"},
       {t:"PANASONIC",c:"corp",y:"",cn:"",media:"assets/work/panasonic/"},
       {t:"KEIKYU",c:"corp",y:"",cn:"",media:"assets/work/keikyu/"},
       {t:"MV",c:"corp",y:"",cn:"",media:"assets/work/mv/"},
       {t:"SERECOOP",c:"corp",y:"",cn:"",media:"assets/work/serecoop/"},
       {t:"TWQR",c:"corp",y:"",cn:"",media:"assets/work/twqr/",o:"tall",focus:"50% 22%"},
+      {t:"SHORTDRAMA1",c:"corp",y:"",cn:"",media:"assets/work/shortdrama1/",o:"tall"},
+      {t:"SHORTDRAMA2",c:"corp",y:"",cn:"",media:"assets/work/shortdrama2/",o:"tall"},
       {t:"VJ",c:"corp",y:"",cn:"",media:"assets/work/vj/"},
       {t:"XINZHU",c:"corp",y:"",cn:"",media:"assets/work/xinzhu/"},
       {t:"HANLIN",c:"corp",y:"",cn:"",media:"assets/work/hanlin/"}
@@ -1078,13 +1085,15 @@ const T = {
       {t:"COMPUTEX FORUM 2026 — SIEMENS",c:"corp",y:"2026",cn:"Corporate Concept Film",role:"3D CG / Motion Graphics / Sound Design",media:"assets/work/computex_2026_siemens/",hover:true,tabDir:"assets/work/computex_2026_siemens/tab/images/",embedUrl:"https://player.mediadelivery.net/embed/742300/5c269504-cc6b-426d-9149-b50ccb3fcda1?autoplay=true&loop=false&muted=true&preload=true&responsive=true",tabImages:["1.png","2.png","3.png","4.png"],detailDesc:"Produced the opening film for Siemens' keynote presentation at COMPUTEX FORUM 2026. We translated Siemens' vision of the future — built around AI, Automation and Mobility — into a fully 3D CG film, handling every stage in house: concept and creative direction, previs, 3D CG production, visual direction, compositing and final delivery. The film builds a future where space, mobility, infrastructure and automation flow together seamlessly, through precise 3D craft and dynamic camera work. Rather than stating complex technology as a message, we elevated it into visuals an audience can grasp instantly — a brand film with the impact a world-class tech stage demands."},
       {t:"FILM1",c:"corp",y:"",cn:"",media:"assets/work/film1/"},
       {t:"FILM2",c:"corp",y:"",cn:"",media:"assets/work/film2/",o:"tall"},
-      {t:"FILM3",c:"corp",y:"",cn:"",media:"assets/work/film3/",o:"tall"},
+      {t:"FILM3",c:"corp",y:"",cn:"",media:"assets/work/film3/"},
       {t:"MSI",c:"corp",y:"",cn:"",media:"assets/work/msi/"},
       {t:"PANASONIC",c:"corp",y:"",cn:"",media:"assets/work/panasonic/"},
       {t:"KEIKYU",c:"corp",y:"",cn:"",media:"assets/work/keikyu/"},
       {t:"MV",c:"corp",y:"",cn:"",media:"assets/work/mv/"},
       {t:"SERECOOP",c:"corp",y:"",cn:"",media:"assets/work/serecoop/"},
       {t:"TWQR",c:"corp",y:"",cn:"",media:"assets/work/twqr/",o:"tall",focus:"50% 22%"},
+      {t:"SHORTDRAMA1",c:"corp",y:"",cn:"",media:"assets/work/shortdrama1/",o:"tall"},
+      {t:"SHORTDRAMA2",c:"corp",y:"",cn:"",media:"assets/work/shortdrama2/",o:"tall"},
       {t:"VJ",c:"corp",y:"",cn:"",media:"assets/work/vj/"},
       {t:"XINZHU",c:"corp",y:"",cn:"",media:"assets/work/xinzhu/"},
       {t:"HANLIN",c:"corp",y:"",cn:"",media:"assets/work/hanlin/"}
@@ -1117,13 +1126,15 @@ const T = {
       {t:"COMPUTEX FORUM 2026 — SIEMENS",c:"corp",y:"2026",cn:"企業概念影片",role:"三維CG / 動態圖形 / 聲音設計",media:"assets/work/computex_2026_siemens/",hover:true,tabDir:"assets/work/computex_2026_siemens/tab/images/",embedUrl:"https://player.mediadelivery.net/embed/742300/5c269504-cc6b-426d-9149-b50ccb3fcda1?autoplay=true&loop=false&muted=true&preload=true&responsive=true",tabImages:["1.png","2.png","3.png","4.png"],detailDesc:"為COMPUTEX FORUM 2026上西門子（SIEMENS）的主題演講製作開場影片。以「AI × 自動化 × 移動性」為主軸，將西門子描繪的未來願景以全三維CG影像呈現，並一手包辦從企劃、概念設計、預演、三維CG製作、影像演出、合成到最終交付的全部流程。透過精密的三維表現與充滿動感的運鏡，構築出空間、移動、基礎設施與自動化無縫串聯的未來世界。不僅僅是傳達複雜科技與未來願景的訊息，更將其昇華為觀眾能夠直覺感受的視覺體驗，實現了足以匹配世界級科技盛會舞台、極具震撼力的品牌影片。"},
       {t:"FILM1",c:"corp",y:"",cn:"",media:"assets/work/film1/"},
       {t:"FILM2",c:"corp",y:"",cn:"",media:"assets/work/film2/",o:"tall"},
-      {t:"FILM3",c:"corp",y:"",cn:"",media:"assets/work/film3/",o:"tall"},
+      {t:"FILM3",c:"corp",y:"",cn:"",media:"assets/work/film3/"},
       {t:"MSI",c:"corp",y:"",cn:"",media:"assets/work/msi/"},
       {t:"PANASONIC",c:"corp",y:"",cn:"",media:"assets/work/panasonic/"},
       {t:"KEIKYU",c:"corp",y:"",cn:"",media:"assets/work/keikyu/"},
       {t:"MV",c:"corp",y:"",cn:"",media:"assets/work/mv/"},
       {t:"SERECOOP",c:"corp",y:"",cn:"",media:"assets/work/serecoop/"},
       {t:"TWQR",c:"corp",y:"",cn:"",media:"assets/work/twqr/",o:"tall",focus:"50% 22%"},
+      {t:"SHORTDRAMA1",c:"corp",y:"",cn:"",media:"assets/work/shortdrama1/",o:"tall"},
+      {t:"SHORTDRAMA2",c:"corp",y:"",cn:"",media:"assets/work/shortdrama2/",o:"tall"},
       {t:"VJ",c:"corp",y:"",cn:"",media:"assets/work/vj/"},
       {t:"XINZHU",c:"corp",y:"",cn:"",media:"assets/work/xinzhu/"},
       {t:"HANLIN",c:"corp",y:"",cn:"",media:"assets/work/hanlin/"}
@@ -1871,22 +1882,29 @@ function buildWork(L){
     // joints never line up into a cross, which is what makes a tiled wall
     // read as deliberate rather than as a spreadsheet.
     computex_2026_siemens: [0, 7, 0, 1],
-    film1:                 [7, 5, 0, 1],
+    panasonic:             [7, 5, 0, 1],
 
-    // the three portrait posters, kept in true portrait
-    film2:                 [0, 4, 1, 2],
-    film3:                 [4, 4, 1, 2],
-    twqr:                  [8, 4, 1, 2],
+    // FILM2 and FILM3 both have landscape thumbnails now, so each is paired
+    // with a partner in its own row rather than sitting alone at full width.
+    film3:                 [0, 5, 1, 1],
+    msi:                   [5, 7, 1, 1],
 
-    msi:                   [0, 5, 3, 1],
-    serecoop:              [5, 7, 3, 1],
+    film1:                 [0, 6, 2, 1],
+    film2:                 [6, 6, 2, 1],
 
-    // CM1 / CM2 sit as their own row, roughly in the middle of the wall
-    panasonic:             [0, 6, 4, 1],
-    keikyu:                [6, 6, 4, 1],
+    // The three posters sit side by side in one dedicated row. That row is
+    // stretched to 2x a normal landscape tile's height via .grid's row
+    // sizing below, so each poster reads as a proper portrait rather than a
+    // cramped sliver.
+    twqr:                  [0, 4, 3, 1],
+    shortdrama1:           [4, 4, 3, 1],
+    shortdrama2:           [8, 4, 3, 1],
 
-    mv:                    [0, 7, 5, 1],
-    vj:                    [7, 5, 5, 1],
+    serecoop:              [0, 7, 4, 1],
+    keikyu:                [7, 5, 4, 1],
+
+    mv:                    [0, 6, 5, 1],
+    vj:                    [6, 6, 5, 1],
 
     xinzhu:                [0, 5, 6, 1],
     hanlin:                [5, 7, 6, 1]
@@ -1897,7 +1915,7 @@ function buildWork(L){
     const L4 = LAYOUT[slugOf(p)];
     if(L4) return {c:L4[0], w:L4[1], r:L4[2], h:L4[3]};
     // anything not in the map is appended as a half-width landscape row
-    const r = 7 + Math.floor(i/2);
+    const r = 8 + Math.floor(i/2);
     return {c:(i%2)*6, w:6, r, h:1};
   });
 
