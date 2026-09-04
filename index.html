@@ -1927,7 +1927,12 @@ function buildWork(L){
     const g = place[i];
     a.style.gridColumn = (g.c + 1) + ' / span ' + g.w;
     a.style.gridRow    = (g.r + 1) + ' / span ' + g.h;
-    if(g.h > 1) a.classList.add('tile-tall');
+    // these three sit in the doubled-height poster row (see .grid's
+    // grid-template-rows), so they read as portrait tiles even though they
+    // only span h=1 in the row-index sense — tag them the same as any
+    // other tall tile so mobile (which relies on this class) keeps them
+    // properly portrait instead of defaulting to 16:9.
+    if(g.h > 1 || ['twqr','shortdrama1','shortdrama2'].includes(slugOf(p))) a.classList.add('tile-tall');
     if(p.focus) a.style.setProperty('--focus', p.focus);
     if(p.fit){
       a.style.setProperty('--fit', p.fit);
