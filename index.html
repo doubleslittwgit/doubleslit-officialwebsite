@@ -181,20 +181,25 @@ body.menu-open .burger i:nth-child(2){ transform:translateY(-3.5px) rotate(-45de
 }
 .hero-media{
   position:relative; width:100%;
-  aspect-ratio:2.39/1; max-height:84svh;
+  aspect-ratio:16/9;
   overflow:hidden;
   filter:saturate(calc(1 + var(--disp,0) * .55)) hue-rotate(calc(var(--disp,0) * 36deg));
-  /* feather ONLY the bottom edge into black; top and sides are hard */
-  -webkit-mask-image:linear-gradient(180deg, #000 0, #000 68%, transparent 100%);
-          mask-image:linear-gradient(180deg, #000 0, #000 68%, transparent 100%);
 }
-.hero-media canvas, .hero-media video{
+.hero-media video{
   position:absolute; inset:0; width:100%; height:100%;
   object-fit:cover;
 }
-.hero-media video{ opacity:0; transition:opacity 1.2s ease; }
+.hero-media video{
+  opacity:0; transition:opacity 1.2s ease;
+  /* a narrow opacity fade at the very bottom edge — not a black overlay.
+     The video becomes transparent here, revealing the wave background
+     canvas behind it (see FADE_FRAC in the wave script, which is kept in
+     sync with this same fraction so waves start exactly where the video
+     finishes fading out). */
+  -webkit-mask-image:linear-gradient(180deg, #000 0, #000 92%, transparent 100%);
+          mask-image:linear-gradient(180deg, #000 0, #000 92%, transparent 100%);
+}
 .hero.has-reel video{ opacity:1; }
-.hero.has-reel canvas{ opacity:.22; }
 .hero-veil{ display:none; }
 .hero-foot{
   position:absolute; left:var(--gut); right:var(--gut);
@@ -214,11 +219,34 @@ body.menu-open .burger i:nth-child(2){ transform:translateY(-3.5px) rotate(-45de
 .mark{
   position:relative; z-index:2; background:transparent;
   display:block;
-  padding:clamp(30px,5vh,64px) var(--gut) clamp(70px,10vh,120px) clamp(20px,3vw,44px);
+  /* extra top/bottom room: the 3D logo needs breathing space around it, and
+     on mobile that vertical space is also what gives the scroll-driven
+     rotation something to scroll THROUGH — too little height and the logo
+     finishes rotating almost the instant it enters view */
+  padding:clamp(60px,10vh,120px) var(--gut) clamp(110px,16vh,200px) clamp(20px,3vw,44px);
   overflow:hidden;
 }
 
-.mark-inner{ position:relative; width:100%; max-width:none; margin:0; }
+.mark-inner{
+  position:relative; width:100%; max-width:none; margin:0;
+  display:grid; grid-template-columns:minmax(280px,1fr) minmax(0,1.35fr);
+  gap:clamp(24px,4vw,64px); align-items:center;
+}
+.mark-logo3d{
+  position:relative; width:100%; aspect-ratio:1/1.05;
+  min-height:320px;
+}
+.mark-logo3d canvas{
+  display:block; position:absolute; inset:0;
+  width:100% !important; height:100% !important;
+  object-fit:contain;
+}
+.mark-text{ min-width:0; }
+
+@media (max-width:900px){
+  .mark-inner{ grid-template-columns:1fr; }
+  .mark-logo3d{ order:-1; aspect-ratio:1/0.9; min-height:280px; margin-bottom:8px; }
+}
 
 .wordmark{
   display:block; line-height:0; position:relative;
@@ -788,7 +816,6 @@ footer{
 <!-- ============================ HERO ============================ -->
 <section class="hero" id="top">
   <div class="hero-media">
-    <canvas id="herofringe" aria-hidden="true"></canvas>
 
     <!-- リールは assets/ 内の mp4 を使用。画面サイズ・回線に応じて 720p/1080p を出し分けます。 -->
     <video id="reel" playsinline muted loop autoplay preload="metadata"
@@ -807,6 +834,8 @@ footer{
 <!-- ============================ WORDMARK ============================ -->
 <section class="mark" id="mark">
   <div class="mark-inner">
+    <div class="mark-logo3d" id="markLogo3D" aria-hidden="true"></div>
+    <div class="mark-text">
     <h1 class="wordmark">
       <svg class="wm-svg" viewBox="0 0 1972 133" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="DOUBLE SLIT">
       <defs><mask id="wmMask" maskUnits="userSpaceOnUse" x="-20" y="-20" width="2012" height="173">
@@ -839,6 +868,7 @@ footer{
     <div class="mark-copy">
       <p class="tagline" data-i18n="mark.tagline">光は、二つの道を同時に通る。</p>
       <p class="lede" data-i18n="mark.lede"></p>
+    </div>
     </div>
   </div>
 </section>
@@ -1156,40 +1186,37 @@ function makeFringe(canvas, cfg){
   const strip = document.createElement('canvas');
   strip.height = 1;
   const sctx = strip.getContext('2d');
-  let W=0, H=0, img=null;
-
+  let W=0, H=0, DPR=Math.min(2, devicePixelRatio||1);
   function resize(){
     const r = canvas.getBoundingClientRect();
-    W = Math.max(2, Math.round(r.width));
-    H = Math.max(2, Math.round(r.height));
+    W = Math.max(1, Math.round(r.width*DPR));
+    H = Math.max(1, Math.round(r.height*DPR));
     canvas.width = W; canvas.height = H;
     strip.width = W;
-    img = sctx.createImageData(W,1);
   }
-
+  resize();
   function frame(t){
-    if(!img) return;
-    const d = img.data;
-    const drift = cfg.still ? cfg.phase : t*cfg.speed;
-    for(let i=0;i<W;i++){
-      const u = ((i/W)-0.5)*cfg.spread;
+    if(!W || !H) return;
+    const img = sctx.createImageData(W, 1);
+    const data = img.data;
+    for(let x=0; x<W; x++){
+      const u = x/W - 0.5;
+      let r=0,g=0,b=0;
       for(let c=0;c<3;c++){
         const s = 600/LAMBDA[c];
-        const beta  = Math.PI*u*s*cfg.sep + drift;
-        const alpha = Math.PI*u*s*cfg.width;
-        const env   = alpha===0 ? 1 : Math.pow(Math.sin(alpha)/alpha, 2);
-        let v = Math.pow(Math.cos(beta),2)*env;
-        v = Math.pow(v, cfg.gamma);
-        d[i*4+c] = Math.min(255, v*cfg.gain*255 + cfg.floor);
+        const phase = (u*cfg.spread*s) + t*cfg.speed*(1+c*0.06);
+        const interference = Math.cos(phase*Math.PI*cfg.sep) ** 2;
+        const env = Math.exp(-Math.pow(Math.abs(u)/cfg.width, 2));
+        const v = Math.pow(interference*env, cfg.gamma) * cfg.gain * 255 + cfg.floor;
+        if(c===0) r=v; else if(c===1) g=v; else b=v;
       }
-      d[i*4+3] = 255;
+      const i = x*4;
+      data[i]=r; data[i+1]=g; data[i+2]=b; data[i+3]=255;
     }
-    sctx.putImageData(img,0,0);
+    sctx.putImageData(img, 0, 0);
     ctx.clearRect(0,0,W,H);
     ctx.drawImage(strip, 0, 0, W, 1, 0, 0, W, H);
   }
-
-  resize();
   addEventListener('resize', ()=>{ resize(); frame(0); }, {passive:true});
 
   let raf = null, obs = null, fLast = 0;
@@ -1217,9 +1244,6 @@ function makeFringe(canvas, cfg){
   }
   return {frame, resize, destroy};
 }
-
-const heroFringe = makeFringe(document.getElementById('herofringe'),
-  {spread:26, sep:1.0, width:0.22, speed:0.16, gamma:1.5, gain:.55, floor:6});
 
 /* ============================================================
    4. HERO REEL — fall back to the canvas if no video file
@@ -1609,6 +1633,12 @@ const heroFringe = makeFringe(document.getElementById('herofringe'),
   // the reel gets a hard edge; text gets the soft gradient falloff
   const HARD_MASK = { '.hero-media': true };
   const FIXED_EL  = { '.hdr': true };     // follows the viewport, not the page
+  // .hero-media's own video fades to transparent over its bottom 8% (see the
+  // matching mask-image on `.hero-media video` in the CSS). The wave's
+  // exclusion rectangle must stop at that same point — otherwise waves stay
+  // blanked out underneath the now-see-through strip instead of showing
+  // through it. Keep this fraction identical to the CSS gradient's 92% stop.
+  const OPAQUE_FRAC = { '.hero-media': 0.92 };
   function updateMasks(){
     let n = 0;
     const sy = window.scrollY || 0;
@@ -1620,15 +1650,17 @@ const heroFringe = makeFringe(document.getElementById('herofringe'),
       if(r.width < 4 || r.height < 4) continue;
       const hard = !!HARD_MASK[sel];
       const padX = hard ? 0 : 8, padY = hard ? 0 : 4;
+      const frac = OPAQUE_FRAC[sel] ?? 1;
+      const effH = r.height * frac;             // shrunk height, anchored at top
       // fixed elements (the header) must stay glued to the viewport, so their
       // document-space centre moves with the scroll offset
       const yOff = FIXED_EL[sel] ? (window.scrollY || 0) : sy;
       const cx = (r.left + r.width/2) * DPR;
-      const cy = (r.top + yOff + r.height/2) * DPR; // document space, top-down
+      const cy = (r.top + yOff + effH/2) * DPR; // document space, top-down
       maskBuf[n*4]   = cx;
       maskBuf[n*4+1] = cy;
       maskBuf[n*4+2] = (r.width/2 + padX) * DPR;
-      maskBuf[n*4+3] = (r.height/2 + padY) * DPR;
+      maskBuf[n*4+3] = (effH/2 + padY) * DPR;
       n++;
     }
     for(; n<NM; n++){                             // park unused slots
@@ -2396,6 +2428,115 @@ let saved='ja';
 try{ saved = localStorage.getItem('ds-lang') || 'ja'; }catch(e){}
 setLang(T[saved] ? saved : 'ja');
 reveal();
+</script>
+<script type="importmap">
+{ "imports": { "three": "./assets/three.module.min.js" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from './assets/jsm/loaders/GLTFLoader.js';
+
+/* ============================================================
+   3D LOGO — sits in the .mark-logo3d box (left column of the
+   company-intro section), not the full viewport. Same rig as the
+   validated prototype: mouse-follow rotation on desktop, scroll-driven
+   rotation on touch devices. Pure geometry for now, no texture.
+   ============================================================ */
+(function(){
+  const host = document.getElementById('markLogo3D');
+  if(!host) return;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+  camera.position.set(0, 0.1, 6.5);
+
+  const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  host.appendChild(renderer.domElement);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const key = new THREE.DirectionalLight(0xffffff, 1.1);
+  key.position.set(4, 6, 5);
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0x9fb4ff, 0.4);
+  rim.position.set(-5, -2, -4);
+  scene.add(rim);
+
+  const logo = new THREE.Group();
+  scene.add(logo);
+
+  new GLTFLoader().load('./assets/DoubleSlit_Logo.glb', (gltf)=>{
+    const model = gltf.scene;
+    model.traverse(o=>{
+      if(o.isMesh){
+        o.material = new THREE.MeshStandardMaterial({
+          color: 0xEEEAE1, roughness: 0.55, metalness: 0.05, flatShading: true,
+          side: THREE.DoubleSide
+        });
+      }
+    });
+    const box = new THREE.Box3().setFromObject(model);
+    const center = box.getCenter(new THREE.Vector3());
+    model.position.sub(center);
+    const size = box.getSize(new THREE.Vector3());
+    model.scale.setScalar(3.2 / Math.max(size.x, size.y, size.z));
+    logo.add(model);
+    // The exported GLB contains two near-identical meshes (a leftover
+    // duplicate at a different scale, likely from an edit in Blender).
+    // Only the first is the intended logo — the second is hidden so it
+    // doesn't render as a faint duplicate/ghost behind the real shape.
+    let meshIdx = 0;
+    model.traverse(o=>{
+      if(o.isMesh){
+        if(meshIdx === 1) o.visible = false;
+        meshIdx++;
+      }
+    });
+  }, undefined, err => console.error('logo GLB failed to load:', err));
+
+  function resize(){
+    const w = host.clientWidth, h = host.clientHeight;
+    if(!w || !h) return;
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  }
+  resize();
+  addEventListener('resize', resize);
+  new ResizeObserver(resize).observe(host);
+
+  const isTouch = matchMedia('(pointer:coarse)').matches;
+  let targetX = 0, targetY = 0;
+  const REST_X = 0.06, REST_Y = -0.35;
+
+  if(!isTouch){
+    // rotation follows the cursor's position RELATIVE TO THIS BOX, not the
+    // whole window — so it responds naturally even though the 3D logo is a
+    // small element inside a text-heavy section, not a full-screen hero
+    addEventListener('pointermove', e=>{
+      const r = host.getBoundingClientRect();
+      const nx = ((e.clientX - r.left) / r.width)  * 2 - 1;
+      const ny = ((e.clientY - r.top)  / r.height) * 2 - 1;
+      targetY = REST_Y + nx * 0.5;
+      targetX = REST_X + ny * 0.28;
+    });
+  } else {
+    const onScroll = ()=>{
+      const t = (window.scrollY || document.documentElement.scrollTop) * 0.01;
+      targetY = REST_Y + Math.sin(t) * 0.9;
+    };
+    addEventListener('scroll', onScroll, { passive:true });
+    targetX = REST_X; targetY = REST_Y;
+  }
+
+  function animate(){
+    requestAnimationFrame(animate);
+    logo.rotation.y += (targetY - logo.rotation.y) * 0.06;
+    logo.rotation.x += (targetX - logo.rotation.x) * 0.06;
+    renderer.render(scene, camera);
+  }
+  animate();
+})();
 </script>
 </body>
 </html>
