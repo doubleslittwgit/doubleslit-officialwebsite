@@ -92,7 +92,7 @@ h2.sec-title{
   width:100%; height:100%; opacity:.9;
 }
 @media (max-width:900px){
-  #bg{ display:none; }   /* desktop-only effect; JS also enforces this */
+  #bg{ display:block; }  /* now enabled on phones too — see the JS module */
 }
 /* ============================================================
    LOADER — stage 1: draw outline · stage 2: fill white bottom-up
@@ -1332,12 +1332,11 @@ function makeFringe(canvas, cfg){
 (function(){
   const cv = document.getElementById('bg');
   if(!cv) return;
-  // The background wave field (and its cursor/touch interaction) is a
-  // desktop-only effect. On phones and tablets it is switched off entirely:
-  // no canvas, no WebGL context, no per-frame work, no touch listeners.
-  const isMobileOrTouch = Math.min(innerWidth, innerHeight) <= 900
-                        || matchMedia('(pointer: coarse)').matches;
-  if(isMobileOrTouch){ cv.style.display = 'none'; return; }
+  // The ambient background wave field now runs on phones too. Only the
+  // INTERACTION differs by device: desktop gets the continuous mouse-drag
+  // wake (below); touch devices get a single ripple pinged at the viewport
+  // centre each time the page scrolls (see the scroll listener further
+  // down), which fades over ~2s using the same trail/decay machinery.
   const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const gl = cv.getContext('webgl', {alpha:true, premultipliedAlpha:false, antialias:false});
   if(!gl){ return; }   // no WebGL → leave the black background
@@ -1583,11 +1582,13 @@ function makeFringe(canvas, cfg){
 
   const isSmallScreen = Math.min(innerWidth, innerHeight) <= 900;
   // On phones the native devicePixelRatio (2-3x) matters a lot: rendering
-  // below it looks visibly blurry on a screen the eye is close to. Desktops
-  // can render a bit under native since the screen is viewed from farther
-  // away, which saves GPU work without a visible loss of sharpness.
-  const DPR_CAP = isSmallScreen ? 2.0 : 1.6;
-  let W=0,H=0, DPR=Math.min(DPR_CAP, devicePixelRatio||1) * (isSmallScreen ? 0.9 : 0.72);
+  // below it looks visibly blurry/grainy on a screen the eye is close to, and
+  // makes the hairline fringes look thick and jagged. Render at (close to)
+  // native resolution on phones; desktops can go a bit under native since
+  // the screen is viewed from farther away, which saves GPU work without a
+  // visible loss of sharpness.
+  const DPR_CAP = isSmallScreen ? 2.5 : 1.6;
+  let W=0,H=0, DPR=Math.min(DPR_CAP, devicePixelRatio||1) * (isSmallScreen ? 1.0 : 0.72);
   const NUM=6;
   const src = new Float32Array(NUM*2), range = new Float32Array(NUM),
         kArr = new Float32Array(NUM), thArr = new Float32Array(NUM);
@@ -1710,7 +1711,12 @@ function makeFringe(canvas, cfg){
       maskBuf[n*4+2] = 0.0; maskBuf[n*4+3] = 0.0;
     }
     gl.uniform4fv(uMask, maskBuf);
-    gl.uniform1f(uMaskFeather, 190 * DPR);        // wide, noise-dissolved falloff
+    // Narrow phone screens can't spare the same wide dissolve margin a
+    // desktop viewport can — a 190px feather eats most of the available
+    // width between text blocks on a 380px-wide screen. Tighten it (and the
+    // vertical wave-start feather) on small screens so masks hug the text
+    // actually sitting there instead of overwhelming the layout.
+    gl.uniform1f(uMaskFeather, (isSmallScreen ? 90 : 190) * DPR);
 
     // the wave field starts near the top of DOUBLE SLIT itself (rather than
     // below it), so waves appear noticeably earlier on the page
@@ -1719,7 +1725,7 @@ function makeFringe(canvas, cfg){
       const tr = tagEl.getBoundingClientRect();
       const startY = (tr.top + (window.scrollY || 0)) * DPR;
       gl.uniform1f(uWaveStart, startY);
-      gl.uniform1f(uWaveFeather, 130 * DPR);      // narrower dissolve band
+      gl.uniform1f(uWaveFeather, (isSmallScreen ? 70 : 130) * DPR);      // narrower dissolve band
     }
   }
   window.__updateWaveMasks = updateMasks;
@@ -1738,7 +1744,7 @@ function makeFringe(canvas, cfg){
   // ---- cursor wake: samples live DECAY seconds and are emitted at a fixed
   //      interval of DECAY/NT, so a slot is only ever recycled once its life
   //      has reached zero. That removes the popping and keeps it smooth.
-  const NT = 14, DECAY = 1.8;
+  const NT = 14, DECAY = 2.0;
   const EMIT = (DECAY / NT) * 1000;          // ms between samples (~129ms)
   const trail = new Float32Array(NT*3);
   const tstr  = new Float32Array(NT);
@@ -1755,6 +1761,24 @@ function makeFringe(canvas, cfg){
     bx[head] = cx; by[head] = cy;
     born[head] = performance.now()/1000;
     bstr[head] = Math.min(1.15, 0.85 + speed*0.30);
+  }
+
+  // A "dead" slot has born<=0, which the shader always treats as not-alive
+  // (see the `ok` term in curWave). Pushing one before an isolated ripple
+  // breaks the implicit path-segment link to whatever sample came before it,
+  // so the new ripple never draws a connecting band back to an unrelated
+  // point elsewhere on the page.
+  function deadGap(){
+    head = (head + 1) % NT;
+    born[head] = 0; bstr[head] = 0; bx[head] = 0; by[head] = 0;
+  }
+  // A single stationary ripple: gap, then the same point twice (a zero-length
+  // "segment", which curWave still renders as an expanding ring around that
+  // point) — used for the touch/scroll ping below instead of a drag wake.
+  function pingAt(px, py, strength){
+    deadGap();
+    pushSample(px, py, strength);
+    pushSample(px, py, strength);
   }
 
   // pointermove only records position + speed; emission happens on the clock
@@ -1789,6 +1813,25 @@ function makeFringe(canvas, cfg){
   addEventListener('pointerleave', e=>{
     if(e.pointerType === 'touch'){ haveLast = false; touchActive = false; }
   }, {passive:true});
+
+  // ---- TOUCH: no drag-wake — instead, ping a single ripple at the
+  // viewport's centre each time the page scrolls a meaningful amount. It
+  // fades on its own via the same trail/DECAY machinery as the desktop wake.
+  if(isTouchDevice && !REDUCED){
+    const PING_MIN_SCROLL_PX = 120;   // spawn roughly once per this much scroll…
+    const PING_MIN_GAP_MS    = 260;   // …but never more often than this
+    let lastPingScrollY = null, lastPingT = 0;
+    addEventListener('scroll', ()=>{
+      const now = performance.now();
+      const sy = window.scrollY || 0;
+      if(lastPingScrollY !== null && Math.abs(sy - lastPingScrollY) < PING_MIN_SCROLL_PX) return;
+      if(now - lastPingT < PING_MIN_GAP_MS) return;
+      lastPingScrollY = sy; lastPingT = now;
+      const px = (innerWidth * 0.5) * DPR;
+      const py = (sy + innerHeight * 0.5) * DPR;
+      pingAt(px, py, 1.0);
+    }, {passive:true});
+  }
 
   function updateTrail(nowSec){
     // Upload OLDEST → NEWEST so u_trail[i] and u_trail[i+1] are always
@@ -1830,12 +1873,11 @@ function makeFringe(canvas, cfg){
       lastMaskScroll = sNow;
       if(window.__updateWaveMasks) window.__updateWaveMasks();
     }
-    // emit on a fixed clock so the wake is continuous whether the pointer is
-    // moving fast, drifting slowly, or completely stationary — but on
-    // touchscreens there is no ambient "cursor", so only emit while a
-    // finger is actually down, otherwise a phantom ripple would sit at the
-    // last-touched point forever, as if a mouse were still hovering there.
-    const canEmit = haveLast && (!isTouchDevice || touchActive);
+    // emit on a fixed clock so the wake is continuous whether the mouse is
+    // moving fast, drifting slowly, or completely stationary. Touch devices
+    // don't use this continuous wake at all — they get the scroll-triggered
+    // ping above instead — so emission here is desktop-only.
+    const canEmit = !isTouchDevice && haveLast;
     if(canEmit && (now - lastEmit) >= EMIT){
       pushSample(lastPX, lastPY, smoothSpeed);
       lastEmit = now;
