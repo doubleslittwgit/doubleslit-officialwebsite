@@ -1362,6 +1362,7 @@ function makeFringe(canvas, cfg){
   'uniform float u_waveFeather;', // fade-in distance below that point
   'uniform float u_waveEnd;',     // doc-space Y (px) where the field ends (mobile-only band)
   'uniform float u_waveEndFeather;',
+  'uniform float u_alphaScale;',  // overall intensity multiplier (mobile turns this down)
   'const float W  = 1.4;',
   'const float KC = 0.28;',   // cursor wavelength: dense crossings, not too tight
   'const float WC = 2.2;',
@@ -1556,7 +1557,7 @@ function makeFringe(canvas, cfg){
   '  float chroma = clamp(0.35 + amt*1.6, 0.0, 1.0) * ov;',
   '  vec3 col = vec3(lum) * mix(vec3(1.0), tintC*1.25, chroma);',
   '  float a = lum * (0.13 + ov*0.95);',
-  '  gl_FragColor = vec4(col, clamp(a, 0.0, 1.0) * keep);',
+  '  gl_FragColor = vec4(col, clamp(a, 0.0, 1.0) * keep * u_alphaScale);',
   '}'
   ].join('\n');
 
@@ -1586,7 +1587,8 @@ function makeFringe(canvas, cfg){
         uTrail=U('u_trail[0]'), uTstr=U('u_tstr[0]'),
         uMask=U('u_mask[0]'), uMaskFeather=U('u_maskFeather'),
         uWaveStart=U('u_waveStart'), uWaveFeather=U('u_waveFeather'),
-        uWaveEnd=U('u_waveEnd'), uWaveEndFeather=U('u_waveEndFeather');
+        uWaveEnd=U('u_waveEnd'), uWaveEndFeather=U('u_waveEndFeather'),
+        uAlphaScale=U('u_alphaScale');
 
   const isSmallScreen = Math.min(innerWidth, innerHeight) <= 900;
   // On phones the native devicePixelRatio (2-3x) matters a lot: rendering
@@ -1597,6 +1599,8 @@ function makeFringe(canvas, cfg){
   // visible loss of sharpness.
   const DPR_CAP = isSmallScreen ? 2.5 : 1.6;
   let W=0,H=0, DPR=Math.min(DPR_CAP, devicePixelRatio||1) * (isSmallScreen ? 1.0 : 0.72);
+  gl.useProgram(prog);
+  gl.uniform1f(uAlphaScale, isSmallScreen ? 0.55 : 1.0);   // phones: noticeably lighter/less saturated
   const NUM=6;
   const src = new Float32Array(NUM*2), range = new Float32Array(NUM),
         kArr = new Float32Array(NUM), thArr = new Float32Array(NUM);
@@ -1637,7 +1641,9 @@ function makeFringe(canvas, cfg){
       src[i*2+1] = pts[i].y*DPR;
       range[i]   = vmin*DPR*(0.40 + Math.random()*0.14)*rangeScale;   // localised, merges at edges
       kArr[i]    = (0.085 + Math.random()*0.032)/DPR;      // denser contours fill the page
-      thArr[i]   = 0.968 + Math.random()*0.020;            // hairline contours
+      // hairline contours — thinner still on phones, where the higher
+      // render resolution otherwise makes each line read as thick/heavy
+      thArr[i]   = isSmallScreen ? (0.986 + Math.random()*0.012) : (0.968 + Math.random()*0.020);
     }
     gl.uniform2fv(uSrc, src);
     gl.uniform1fv(uRange, range);
@@ -1674,7 +1680,9 @@ function makeFringe(canvas, cfg){
   const MASK_SEL = [
     '.hero-media',                     // the reel: waves must not sit over it
     '.hdr',                            // logo / nav / language tabs
-    '.wordmark', '.tagline', '.mark-copy .lede',
+    '.mark-text',                      // wordmark + tagline + lede, ONE rect —
+                                        // covers the whole company blurb with no
+                                        // gaps between the lines for waves to leak through
     '.work-title',
     '#capabilities .sec-head', '#caps',
     '#estimate .sec-head', '#estimate .est',
@@ -1683,6 +1691,10 @@ function makeFringe(canvas, cfg){
   ];
   // the reel gets a hard edge; text gets the soft gradient falloff
   const HARD_MASK = { '.hero-media': true };
+  // the company-blurb mask needs to read as solid — not just soft-dissolved
+  // like a normal text box — so it gets extra padding on top of the shared
+  // feather, keeping the noise-dissolved edge safely clear of the glyphs
+  const PAD_OVERRIDE = { '.mark-text': { x: 28, y: 26 } };
   const FIXED_EL  = { '.hdr': true };     // follows the viewport, not the page
   // .hero-media's own video fades to transparent over its bottom 8% (see the
   // matching mask-image on `.hero-media video` in the CSS). The wave's
@@ -1700,7 +1712,9 @@ function makeFringe(canvas, cfg){
       const r = el.getBoundingClientRect();
       if(r.width < 4 || r.height < 4) continue;
       const hard = !!HARD_MASK[sel];
-      const padX = hard ? 0 : 8, padY = hard ? 0 : 4;
+      const pad = PAD_OVERRIDE[sel];
+      const padX = pad ? pad.x : (hard ? 0 : 8);
+      const padY = pad ? pad.y : (hard ? 0 : 4);
       const frac = OPAQUE_FRAC[sel] ?? 1;
       const effH = r.height * frac;             // shrunk height, anchored at top
       // fixed elements (the header) must stay glued to the viewport, so their
@@ -1731,16 +1745,21 @@ function makeFringe(canvas, cfg){
     // the field is confined to a single band — the ABOUT section only,
     // starting at the very top of that section (so the 3D logo's own box
     // gets waves behind it too, not just the text below it) and ending at
-    // the section's bottom edge, so nothing below ABOUT shows any wave.
+    // the section's bottom edge, so nothing below ABOUT shows any wave. The
+    // start feather is deliberately wide on phones — the header video's own
+    // mask ends right where this band begins, and a narrow feather there
+    // made the waves seem to snap on abruptly right after the video; a wide
+    // feather turns that into a long, gradual reveal instead. The end
+    // feather stays tight, since that edge just needs a clean, complete cutoff.
     const markSection = document.getElementById('mark');
     if(isSmallScreen && markSection){
       const mr = markSection.getBoundingClientRect();
       const startY = (mr.top + (window.scrollY || 0)) * DPR;
       const endY   = (mr.bottom + (window.scrollY || 0)) * DPR;
       gl.uniform1f(uWaveStart, startY);
-      gl.uniform1f(uWaveFeather, 70 * DPR);
+      gl.uniform1f(uWaveFeather, 260 * DPR);
       gl.uniform1f(uWaveEnd, endY);
-      gl.uniform1f(uWaveEndFeather, 70 * DPR);
+      gl.uniform1f(uWaveEndFeather, 40 * DPR);
     } else {
       const tagEl = document.querySelector('.wordmark') || document.getElementById('mark');
       if(tagEl){
