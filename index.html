@@ -92,7 +92,7 @@ h2.sec-title{
   width:100%; height:100%; opacity:.9;
 }
 @media (max-width:900px){
-  #bg{ display:block; }  /* now enabled on phones too — see the JS module */
+  #bg{ display:block; opacity:.5; }  /* enabled on phones, at half the desktop opacity */
 }
 /* ============================================================
    LOADER — stage 1: draw outline · stage 2: fill white bottom-up
@@ -731,7 +731,7 @@ footer{
   .brand span{ font-size:16px; }
   .brand img{ height:42px; }
   /* keep the switcher compact: globe + current language only */
-  .lang{ top:64px; padding:3px 5px 3px 8px; }
+  .lang{ padding:3px 5px 3px 8px; }
   .lang button{ font-size:12px; padding:5px 8px; }
   .lang button[aria-pressed="false"]{ display:none; }
   body.lang-open .lang button[aria-pressed="false"]{ display:block; }
@@ -1360,6 +1360,8 @@ function makeFringe(canvas, cfg){
   'uniform float u_maskFeather;',
   'uniform float u_waveStart;',   // doc-space Y (px) where the wave field begins
   'uniform float u_waveFeather;', // fade-in distance below that point
+  'uniform float u_waveEnd;',     // doc-space Y (px) where the field ends (mobile-only band)
+  'uniform float u_waveEndFeather;',
   'const float W  = 1.4;',
   'const float KC = 0.28;',   // cursor wavelength: dense crossings, not too tight
   'const float WC = 2.2;',
@@ -1478,6 +1480,11 @@ function makeFringe(canvas, cfg){
   '  // in below it (noise-textured, not a hard line)',
   '  float vEdge = (p.y - u_waveStart) + n * u_waveFeather * 1.4;',
   '  keep = min(keep, smoothstep(0.0, u_waveFeather, vEdge));',
+  '  // vertical end: on mobile the field is confined to a single band (the',
+  '  // ABOUT section) and dissolves again before u_waveEnd; on desktop this',
+  '  // is left far below the page so it never engages.',
+  '  float vEdge2 = (u_waveEnd - p.y) + n * u_waveEndFeather * 1.4;',
+  '  keep = min(keep, smoothstep(0.0, u_waveEndFeather, vEdge2));',
   '  return keep;',
   '}',
   '',
@@ -1578,7 +1585,8 @@ function makeFringe(canvas, cfg){
         uK=U('u_k[0]'), uTh=U('u_th[0]'),
         uTrail=U('u_trail[0]'), uTstr=U('u_tstr[0]'),
         uMask=U('u_mask[0]'), uMaskFeather=U('u_maskFeather'),
-        uWaveStart=U('u_waveStart'), uWaveFeather=U('u_waveFeather');
+        uWaveStart=U('u_waveStart'), uWaveFeather=U('u_waveFeather'),
+        uWaveEnd=U('u_waveEnd'), uWaveEndFeather=U('u_waveEndFeather');
 
   const isSmallScreen = Math.min(innerWidth, innerHeight) <= 900;
   // On phones the native devicePixelRatio (2-3x) matters a lot: rendering
@@ -1719,13 +1727,30 @@ function makeFringe(canvas, cfg){
     gl.uniform1f(uMaskFeather, (isSmallScreen ? 90 : 190) * DPR);
 
     // the wave field starts near the top of DOUBLE SLIT itself (rather than
-    // below it), so waves appear noticeably earlier on the page
-    const tagEl = document.querySelector('.wordmark') || document.getElementById('mark');
-    if(tagEl){
-      const tr = tagEl.getBoundingClientRect();
-      const startY = (tr.top + (window.scrollY || 0)) * DPR;
+    // below it), so waves appear noticeably earlier on the page. On phones
+    // the field is confined to a single band — the ABOUT section only,
+    // starting at the very top of that section (so the 3D logo's own box
+    // gets waves behind it too, not just the text below it) and ending at
+    // the section's bottom edge, so nothing below ABOUT shows any wave.
+    const markSection = document.getElementById('mark');
+    if(isSmallScreen && markSection){
+      const mr = markSection.getBoundingClientRect();
+      const startY = (mr.top + (window.scrollY || 0)) * DPR;
+      const endY   = (mr.bottom + (window.scrollY || 0)) * DPR;
       gl.uniform1f(uWaveStart, startY);
-      gl.uniform1f(uWaveFeather, (isSmallScreen ? 70 : 130) * DPR);      // narrower dissolve band
+      gl.uniform1f(uWaveFeather, 70 * DPR);
+      gl.uniform1f(uWaveEnd, endY);
+      gl.uniform1f(uWaveEndFeather, 70 * DPR);
+    } else {
+      const tagEl = document.querySelector('.wordmark') || document.getElementById('mark');
+      if(tagEl){
+        const tr = tagEl.getBoundingClientRect();
+        const startY = (tr.top + (window.scrollY || 0)) * DPR;
+        gl.uniform1f(uWaveStart, startY);
+        gl.uniform1f(uWaveFeather, 130 * DPR);      // narrower dissolve band
+      }
+      gl.uniform1f(uWaveEnd, 1e9);        // far below the page — never engages on desktop
+      gl.uniform1f(uWaveEndFeather, 100 * DPR);
     }
   }
   window.__updateWaveMasks = updateMasks;
@@ -1799,7 +1824,12 @@ function makeFringe(canvas, cfg){
     lastPX = e.clientX*DPR;
     lastPY = (e.clientY*DPR) + (window.scrollY||0)*DPR;
     haveLast = true; smoothSpeed = 1.0;
-    if(e.pointerType === 'touch') touchActive = true;
+    if(e.pointerType === 'touch'){
+      touchActive = true;
+      // an isolated ripple right at the touch point, so contact reads
+      // instantly instead of waiting for the next fixed-clock sample
+      pingAt(lastPX, lastPY, 1.0);
+    }
   }, {passive:true});
   // Touch has no persistent "cursor": once the finger lifts, the wake must
   // stop being re-emitted from that last touched point, otherwise a phantom
@@ -1813,25 +1843,6 @@ function makeFringe(canvas, cfg){
   addEventListener('pointerleave', e=>{
     if(e.pointerType === 'touch'){ haveLast = false; touchActive = false; }
   }, {passive:true});
-
-  // ---- TOUCH: no drag-wake — instead, ping a single ripple at the
-  // viewport's centre each time the page scrolls a meaningful amount. It
-  // fades on its own via the same trail/DECAY machinery as the desktop wake.
-  if(isTouchDevice && !REDUCED){
-    const PING_MIN_SCROLL_PX = 120;   // spawn roughly once per this much scroll…
-    const PING_MIN_GAP_MS    = 260;   // …but never more often than this
-    let lastPingScrollY = null, lastPingT = 0;
-    addEventListener('scroll', ()=>{
-      const now = performance.now();
-      const sy = window.scrollY || 0;
-      if(lastPingScrollY !== null && Math.abs(sy - lastPingScrollY) < PING_MIN_SCROLL_PX) return;
-      if(now - lastPingT < PING_MIN_GAP_MS) return;
-      lastPingScrollY = sy; lastPingT = now;
-      const px = (innerWidth * 0.5) * DPR;
-      const py = (sy + innerHeight * 0.5) * DPR;
-      pingAt(px, py, 1.0);
-    }, {passive:true});
-  }
 
   function updateTrail(nowSec){
     // Upload OLDEST → NEWEST so u_trail[i] and u_trail[i+1] are always
@@ -1874,10 +1885,10 @@ function makeFringe(canvas, cfg){
       if(window.__updateWaveMasks) window.__updateWaveMasks();
     }
     // emit on a fixed clock so the wake is continuous whether the mouse is
-    // moving fast, drifting slowly, or completely stationary. Touch devices
-    // don't use this continuous wake at all — they get the scroll-triggered
-    // ping above instead — so emission here is desktop-only.
-    const canEmit = !isTouchDevice && haveLast;
+    // moving fast, drifting slowly, or completely stationary. On touch,
+    // the same clock keeps the ripple going for as long as the finger stays
+    // down (see pingAt() in pointerdown for the instant first ripple).
+    const canEmit = haveLast && (!isTouchDevice || touchActive);
     if(canEmit && (now - lastEmit) >= EMIT){
       pushSample(lastPX, lastPY, smoothSpeed);
       lastEmit = now;
