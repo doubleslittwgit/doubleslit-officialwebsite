@@ -1334,9 +1334,8 @@ function makeFringe(canvas, cfg){
   if(!cv) return;
   // The ambient background wave field now runs on phones too. Only the
   // INTERACTION differs by device: desktop gets the continuous mouse-drag
-  // wake (below); touch devices get a single ripple pinged at the viewport
-  // centre each time the page scrolls (see the scroll listener further
-  // down), which fades over ~2s using the same trail/decay machinery.
+  // wake; touch devices get a ripple that follows the finger (see pingAt()
+  // in the pointerdown handler below), confined to the ABOUT section only.
   const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const gl = cv.getContext('webgl', {alpha:true, premultipliedAlpha:false, antialias:false});
   if(!gl){ return; }   // no WebGL → leave the black background
@@ -1694,7 +1693,7 @@ function makeFringe(canvas, cfg){
   // the company-blurb mask needs to read as solid — not just soft-dissolved
   // like a normal text box — so it gets extra padding on top of the shared
   // feather, keeping the noise-dissolved edge safely clear of the glyphs
-  const PAD_OVERRIDE = { '.mark-text': { x: 28, y: 26 } };
+  const PAD_OVERRIDE = { '.mark-text': { x: 36, y: 34 } };
   const FIXED_EL  = { '.hdr': true };     // follows the viewport, not the page
   // .hero-media's own video fades to transparent over its bottom 8% (see the
   // matching mask-image on `.hero-media video` in the CSS). The wave's
@@ -1728,6 +1727,25 @@ function makeFringe(canvas, cfg){
       maskBuf[n*4+3] = (effH/2 + padY) * DPR;
       n++;
     }
+    // BELT-AND-SUSPENDERS: on phones, also blank out one giant rectangle
+    // spanning the full page width from just below the ABOUT section down
+    // to the bottom of the document. u_waveEnd already does this via the
+    // vertical cutoff, but this second, independent mask guarantees it even
+    // if that math is ever off — WORK/SERVICES/CONTACT must never show wave.
+    if(isSmallScreen && n < NM){
+      const markSection = document.getElementById('mark');
+      if(markSection){
+        const mr = markSection.getBoundingClientRect();
+        const docBottom = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) + 4000;
+        const top = mr.bottom + sy;
+        const bottom = docBottom;
+        maskBuf[n*4]   = (innerWidth/2) * DPR;
+        maskBuf[n*4+1] = ((top+bottom)/2) * DPR;
+        maskBuf[n*4+2] = (innerWidth) * DPR;
+        maskBuf[n*4+3] = ((bottom-top)/2) * DPR;
+        n++;
+      }
+    }
     for(; n<NM; n++){                             // park unused slots
       maskBuf[n*4] = -1e6; maskBuf[n*4+1] = -1e6;
       maskBuf[n*4+2] = 0.0; maskBuf[n*4+3] = 0.0;
@@ -1757,7 +1775,7 @@ function makeFringe(canvas, cfg){
       const startY = (mr.top + (window.scrollY || 0)) * DPR;
       const endY   = (mr.bottom + (window.scrollY || 0)) * DPR;
       gl.uniform1f(uWaveStart, startY);
-      gl.uniform1f(uWaveFeather, 260 * DPR);
+      gl.uniform1f(uWaveFeather, 320 * DPR);
       gl.uniform1f(uWaveEnd, endY);
       gl.uniform1f(uWaveEndFeather, 40 * DPR);
     } else {
