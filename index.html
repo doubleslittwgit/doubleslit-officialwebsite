@@ -92,7 +92,7 @@ h2.sec-title{
   width:100%; height:100%; opacity:.9;
 }
 @media (max-width:900px){
-  #bg{ display:block; opacity:.5; }  /* enabled on phones, at half the desktop opacity */
+  #bg{ display:none; }   /* mobile wave background disabled for now */
 }
 /* ============================================================
    LOADER — stage 1: draw outline · stage 2: fill white bottom-up
@@ -1332,10 +1332,13 @@ function makeFringe(canvas, cfg){
 (function(){
   const cv = document.getElementById('bg');
   if(!cv) return;
-  // The ambient background wave field now runs on phones too. Only the
-  // INTERACTION differs by device: desktop gets the continuous mouse-drag
-  // wake; touch devices get a ripple that follows the finger (see pingAt()
-  // in the pointerdown handler below), confined to the ABOUT section only.
+  // MOBILE WAVE BACKGROUND: disabled for now (removed entirely on phones —
+  // no canvas, no WebGL context, no per-frame work). Desktop is unaffected.
+  // To re-enable later, remove this early return and the matching
+  // `#bg{ display:none; }` rule in the mobile media query.
+  const isMobileOrTouch = Math.min(innerWidth, innerHeight) <= 900
+                        || matchMedia('(pointer: coarse)').matches;
+  if(isMobileOrTouch){ cv.style.display = 'none'; return; }
   const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const gl = cv.getContext('webgl', {alpha:true, premultipliedAlpha:false, antialias:false});
   if(!gl){ return; }   // no WebGL → leave the black background
