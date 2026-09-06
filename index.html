@@ -2643,6 +2643,69 @@ import { GLTFLoader } from './assets/jsm/loaders/GLTFLoader.js';
     return tex;
   }
 
+  // ---- Random-photo slideshow faces (9:16random* / widerandom materials) ----
+  // Filenames weren't given, so this assumes plain sequential numbering
+  // (1, 2, 3…) starting at 1 with no gaps, trying a few common extensions
+  // per index. It stops as soon as an index is missing in ALL of them, so
+  // whatever count actually sits in the folder is picked up automatically.
+  // If the real filenames aren't like this, tell me the actual names/count
+  // and I'll swap this for an explicit list instead.
+  function loadImageSequence(folder, maxCount = 40){
+    return new Promise(resolve=>{
+      const imgs = [];
+      let i = 1;
+      const exts = ['jpg','jpeg','png','webp'];
+      function tryNext(){
+        if(i > maxCount){ resolve(imgs); return; }
+        let ei = 0;
+        (function tryExt(){
+          if(ei >= exts.length){ resolve(imgs); return; }  // gap ⇒ end of the set
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => { imgs.push(img); i++; tryNext(); };
+          img.onerror = () => { ei++; tryExt(); };
+          img.src = `${folder}/${i}.${exts[ei]}`;
+        })();
+      }
+      tryNext();
+    });
+  }
+  function shuffledIndices(n){
+    const a = Array.from({length: n}, (_, i) => i);
+    for(let i = a.length-1; i > 0; i--){
+      const j = (Math.random()*(i+1)) | 0;
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+  // One shared shuffled draw-order per pool, consumed across all slots each
+  // tick — so within a single tick every slot pulls a DIFFERENT image
+  // (as long as the pool has at least `numSlots` photos), reshuffling once
+  // the whole pool has been drawn through.
+  function makeImageCycler(images, numSlots, intervalMs){
+    const L = images.length;
+    const textures = [];
+    if(L === 0) return Array(numSlots).fill(null);
+    let order = shuffledIndices(L), cursor = 0;
+    function nextImg(){
+      if(cursor >= order.length){ order = shuffledIndices(L); cursor = 0; }
+      return images[order[cursor++]];
+    }
+    for(let s = 0; s < numSlots; s++){
+      const tex = new THREE.Texture(nextImg());
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.needsUpdate = true;
+      textures.push(tex);
+    }
+    setInterval(() => {
+      for(let s = 0; s < numSlots; s++){
+        textures[s].image = nextImg();
+        textures[s].needsUpdate = true;
+      }
+    }, intervalMs);
+    return textures;
+  }
+
   // Loading the model (and creating its video texture) is deferred until
   // this box is about to scroll into view — see the IntersectionObserver
   // below. Doing it eagerly at page load meant this section's <video>
@@ -2659,9 +2722,22 @@ import { GLTFLoader } from './assets/jsm/loaders/GLTFLoader.js';
       // Real per-face textures. Created here inside loadLogo() (not at
       // module scope) so they stay behind the IntersectionObserver gate
       // below and don't compete with the header reel's decode on page load.
+      const nineSixteenMeshes = [];   // faces using a "9:16random#" material
+      const wideMeshes = [];          // faces using the "widerandom" material
       model.traverse(o=>{
         if(!o.isMesh) return;
         const name = o.material?.name || '';
+        // matches "916random1".."916random10" and "9:16random1" alike
+        if(/^9:?16random\d+$/i.test(name)){
+          o.material = new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 0.7, side: THREE.DoubleSide });
+          nineSixteenMeshes.push(o);
+          return;
+        }
+        if(/^widerandom$/i.test(name)){
+          o.material = new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 0.7, side: THREE.DoubleSide });
+          wideMeshes.push(o);
+          return;
+        }
         switch(name){
           case 'top':
             o.material = new THREE.MeshBasicMaterial({
@@ -2688,6 +2764,26 @@ import { GLTFLoader } from './assets/jsm/loaders/GLTFLoader.js';
             break;
         }
       });
+      // slideshow faces get their real textures once each folder's photos
+      // have been probed — they show the placeholder colour above until then
+      if(nineSixteenMeshes.length){
+        loadImageSequence('./assets/textures/images/916random').then(imgs=>{
+          const textures = makeImageCycler(imgs, nineSixteenMeshes.length, 1500);
+          nineSixteenMeshes.forEach((o, i)=>{
+            if(!textures[i]) return;
+            o.material = new THREE.MeshBasicMaterial({ map: textures[i], side: THREE.DoubleSide });
+          });
+        });
+      }
+      if(wideMeshes.length){
+        loadImageSequence('./assets/textures/images/wide').then(imgs=>{
+          const textures = makeImageCycler(imgs, wideMeshes.length, 1500);
+          wideMeshes.forEach((o, i)=>{
+            if(!textures[i]) return;
+            o.material = new THREE.MeshBasicMaterial({ map: textures[i], side: THREE.DoubleSide });
+          });
+        });
+      }
       const box = new THREE.Box3().setFromObject(model);
       const center = box.getCenter(new THREE.Vector3());
       model.position.sub(center);
