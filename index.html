@@ -318,7 +318,7 @@ section.band{
    same wide rectangle as the grid below it */
 #work .sec-head{
   grid-template-columns:1fr; margin-bottom:clamp(18px,2.2vw,32px);
-  width:min(1800px, calc(100vw - clamp(28px,4vw,72px)));
+  width:min(2600px, calc(100vw - clamp(28px,4vw,72px)));
   margin-left:50%; transform:translateX(-50%);
 }
 .work-title{
@@ -346,8 +346,12 @@ section.band{
     repeat(3, var(--row-h));
   align-items:stretch;
   /* break out of .wrap (1400px) and the section's side padding, so the wall
-     forms one wide rectangle with only a small margin at the page edges */
-  width:min(1800px, calc(100vw - clamp(28px,4vw,72px)));
+     forms one wide rectangle with only a small margin at the page edges.
+     The 1800px cap used to be the bottleneck on ultrawide (21:9+) monitors —
+     this formula already scales with the viewport, but capped well short of
+     it, leaving big blank gutters on the sides. Raised well past any normal
+     desktop width so it only kicks in on genuinely huge screens. */
+  width:min(2600px, calc(100vw - clamp(28px,4vw,72px)));
   margin-left:50%; transform:translateX(-50%);
 }
 .tile{
@@ -600,95 +604,6 @@ section.band{
 .fact dt{ font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); padding-top:3px; }
 .fact dd{ font-size:15px; color:#CFCBC3; }
 
-
-/* ---------- ESTIMATE ---------- */
-.est{
-  border:1px solid rgba(238,234,225,.14); border-radius:4px;
-  padding:clamp(20px,3vw,40px);
-  background:rgba(255,255,255,.012);
-}
-.est-progress{ display:flex; align-items:center; gap:16px; margin-bottom:clamp(22px,3vw,36px); }
-.est-bar{ flex:1; height:1px; background:rgba(238,234,225,.16); position:relative; overflow:hidden; }
-.est-bar i{
-  position:absolute; inset:0 auto 0 0; width:0%;
-  background:linear-gradient(90deg,#4c6fff,#eafff2,#ff3d8b);
-  transition:width .5s var(--ease);
-}
-.est-step{ flex:none; letter-spacing:.16em; }
-
-.est-stage{ min-height:clamp(210px,26vw,300px); }
-.est-q{
-  font-size:clamp(19px,2.1vw,28px); font-weight:400; line-height:1.3;
-  margin-bottom:6px;
-}
-.est-hint{ color:var(--dim); font-size:14px; margin-bottom:clamp(18px,2.2vw,28px); }
-
-/* option cards - the whole card is the hit area, so it stays easy on touch */
-.est-opts{ display:grid; gap:10px; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); }
-.est-opt{
-  position:relative; text-align:left; padding:16px 18px;
-  border:1px solid rgba(238,234,225,.16); border-radius:3px;
-  background:transparent; color:var(--fringe); cursor:pointer;
-  transition:border-color .25s, background .25s, transform .25s var(--ease);
-}
-.est-opt:hover{ border-color:rgba(238,234,225,.42); transform:translateY(-2px); }
-.est-opt[aria-pressed="true"]{
-  border-color:var(--fringe); background:rgba(238,234,225,.07);
-}
-.est-opt[aria-pressed="true"]::after{
-  content:""; position:absolute; top:14px; right:14px;
-  width:7px; height:7px; border-radius:50%; background:var(--fringe);
-}
-.est-opt b{ display:block; font-weight:400; font-size:16px; margin-bottom:4px; }
-.est-opt span{ display:block; color:var(--dim); font-size:13px; line-height:1.5; }
-
-.est-field{
-  width:100%; padding:14px 16px; border-radius:3px;
-  border:1px solid rgba(238,234,225,.18); background:transparent;
-  color:var(--fringe); font:inherit; font-size:15px;
-}
-.est-field:focus{ outline:none; border-color:rgba(238,234,225,.5); }
-.est-row{ display:grid; gap:12px; grid-template-columns:1fr 1fr; }
-
-.est-foot{
-  display:flex; align-items:center; justify-content:space-between; gap:20px;
-  margin-top:clamp(22px,3vw,34px); padding-top:clamp(18px,2.4vw,26px);
-  border-top:1px solid rgba(238,234,225,.12); flex-wrap:wrap;
-}
-.est-total{ display:flex; align-items:baseline; gap:12px; }
-.est-total strong{ font-size:clamp(20px,2.4vw,30px); font-weight:400; letter-spacing:-.01em; }
-.est-nav{ display:flex; gap:10px; }
-.est-btn{
-  padding:12px 26px; border-radius:999px; border:1px solid var(--fringe);
-  background:var(--fringe); color:var(--ink); font:inherit; font-size:14px;
-  cursor:pointer; transition:opacity .25s;
-}
-.est-btn:hover{ opacity:.85; }
-.est-btn.ghost{ background:transparent; color:var(--fringe); border-color:rgba(238,234,225,.3); }
-.est-btn[disabled]{ opacity:.32; cursor:default; }
-
-/* summary shown on the final step */
-.est-summary{ display:grid; gap:0; margin-bottom:22px; }
-.est-line{
-  display:grid; grid-template-columns:auto 1fr auto; gap:14px;
-  padding:11px 0; border-bottom:1px solid rgba(238,234,225,.1);
-  font-size:14px; align-items:baseline;
-}
-.est-line dt{ color:var(--dim); font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
-.est-line dd{ color:var(--fringe); }
-.est-line em{ color:var(--dim); font-style:normal; font-family:var(--mono); font-size:12px; }
-.est-note{ color:var(--dim); font-size:13px; line-height:1.7; margin-top:16px; }
-.est-done{ text-align:center; padding:clamp(30px,5vw,60px) 0; }
-.est-done h3{ font-size:clamp(20px,2.4vw,30px); font-weight:400; margin-bottom:10px; }
-.est-done p{ color:var(--dim); font-size:15px; }
-
-@media (max-width:900px){
-  .est-row{ grid-template-columns:1fr; }
-  .est-foot{ flex-direction:column; align-items:stretch; }
-  .est-nav{ justify-content:space-between; }
-  .est-btn{ flex:1; }
-}
-
 /* ---------- CONTACT ---------- */
 .big-mail{
   display:inline-block; font-size:clamp(24px,4.6vw,62px); font-weight:300; letter-spacing:-.025em;
@@ -816,7 +731,6 @@ footer{
   <nav class="nav" id="nav">
     <a href="#work" data-i18n="nav.work">Work</a>
     <a href="#capabilities" data-i18n="nav.cap">Capabilities</a>
-    <a href="#estimate" data-i18n="nav.est">見積もり</a>
     <a href="#contact" data-i18n="nav.contact">Contact</a>
   </nav>
 
@@ -828,14 +742,14 @@ footer{
 <!-- ============================ MOBILE TAB BAR ============================
      Phone-only, persistent pill nav pinned to the bottom of the viewport
      (replaces the hamburger overlay on narrow screens). Order: ABOUT (the
-     company-intro section built today) → WORK → SERVICES (capabilities) →
-     CONTACT (the estimate section). Active pill is highlighted via the
-     scroll-spy script near the other page scripts. -->
+     company-intro section) → WORK → SERVICES (capabilities) → CONTACT.
+     Active pill is highlighted via the scroll-spy script near the other
+     page scripts. -->
 <nav class="mobile-tabbar" id="mobileTabbar" aria-label="Section navigation">
   <a href="#mark">ABOUT</a>
   <a href="#work">WORK</a>
   <a href="#capabilities">SERVICES</a>
-  <a href="#estimate">CONTACT</a>
+  <a href="#contact">CONTACT</a>
 </nav>
 
 
@@ -944,41 +858,6 @@ footer{
 
 <!-- ============================ STUDIO ============================ -->
 <!-- ============================ CONTACT ============================ -->
-<!-- ============================ ESTIMATE ============================ -->
-<section class="band" id="estimate">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <div>
-        <p class="eyebrow" data-i18n="est.eyebrow">Instant Estimate</p>
-        <h2 class="sec-title" data-i18n="est.title">概算見積もり</h2>
-      </div>
-      <p class="lede" data-i18n="est.lede"></p>
-    </div>
-
-    <div class="est rv">
-      <!-- progress -->
-      <div class="est-progress" aria-hidden="true">
-        <span class="est-bar"><i id="estBar"></i></span>
-        <span class="est-step mono" id="estStepLabel">1 / 5</span>
-      </div>
-
-      <!-- question area, rebuilt per step by JS -->
-      <div id="estStage" class="est-stage"></div>
-
-      <!-- running total -->
-      <div class="est-foot">
-        <div class="est-total">
-          <span class="mono" data-i18n="est.rough">Rough range</span>
-          <strong id="estAmount">—</strong>
-        </div>
-        <div class="est-nav">
-          <button type="button" class="est-btn ghost" id="estBack" data-i18n="est.back">戻る</button>
-          <button type="button" class="est-btn" id="estNext" data-i18n="est.next">次へ</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <section class="band" id="contact">
   <div class="wrap">
@@ -1090,17 +969,12 @@ footer{
 
 const T = {
   ja:{
-    "nav.work":"ワーク","nav.cap":"事業内容","nav.est":"見積もり","nav.contact":"お問い合わせ",
+    "nav.work":"ワーク","nav.cap":"事業内容","nav.contact":"お問い合わせ",
     "hero.reel":"ショーリール 2026","hero.scroll":"スクロール",
     "mark.tagline":"where motion feels alive",
     "mark.lede":"台北・大阪・東京を拠点に、VFX、3DCG、モーショングラフィックス、MV、VJ、企業PV を手がける映像スタジオ。企画から撮影、プリビズ、ポストプロダクション、納品までを一貫して担います。","cat.vfx":"VFX","cat.live":"ライブビジュアル","cat.cg":"3DCG","cat.film":"フィルム",
     "cap.eyebrow":"事業内容","cap.title":"業務内容",
     "cap.lede":"企画、構成、撮影、編集、納品まで社内で完結。項目を開いて詳細を確認。",
-    
-    
-    
-    
-    "est.eyebrow":"見積もり","est.title":"概算見積もり","est.lede":"いくつか選ぶだけで、おおよその費用がわかります。詳しい条件は改めてお伺いします。","est.rough":"概算","est.back":"戻る","est.next":"次へ",
     "contact.eyebrow":"お問い合わせ","contact.title":"おはなししましょう",
     "contact.reply":"2営業日以内に返信します",
     "contact.lede":"企画段階のご相談、技術検証だけのご依頼も歓迎です。日程・会場・尺・想定予算をいただけると、初回のご返信で具体的な進め方をお出しできます。",
@@ -1114,34 +988,29 @@ const T = {
     ],
     work:[
       {t:"COMPUTEX FORUM 2026 — SIEMENS",c:"corp",y:"2026",cn:"企業コンセプトフィルム",role:"3DCG / モーショングラフィックス / サウンドデザイン",media:"assets/work/computex_2026_siemens/",hover:true,tabDir:"assets/work/computex_2026_siemens/tab/images/",embedUrl:"https://player.mediadelivery.net/embed/742300/5c269504-cc6b-426d-9149-b50ccb3fcda1?autoplay=true&loop=false&muted=true&preload=true&responsive=true",tabImages:["1.png","2.png","3.png","4.png"],detailDesc:"COMPUTEX FORUM 2026にて、SIEMENSのプレゼンテーションを彩るオープニングムービーを制作。SIEMENSが描く未来のビジョンを「AI × Automation × Mobility」を軸としたフル3DCG映像として表現し、企画・コンセプト設計からプリビズ、3DCG制作、映像演出、コンポジット、最終納品までの全工程を一貫して担当しました。空間・モビリティ・インフラ・自動化がシームレスにつながる未来の世界を、緻密な3D表現とダイナミックなカメラワークによって構築。複雑なテクノロジーや未来像を単なるメッセージとして伝えるのではなく、観客が直感的に体験できるビジュアルへと昇華し、世界的なテクノロジーイベントの舞台にふさわしい、強いインパクトを持つブランド映像として実現しました。"},
-      {t:"FILM “OKAMURO-SAN”",c:"corp",y:"",cn:"",media:"assets/work/film1/"},
-      {t:"FILM “DEMON VIRUS”",c:"corp",y:"",cn:"",media:"assets/work/film2/",o:"tall"},
-      {t:"FILM “WANDANCE”",c:"corp",y:"",cn:"",media:"assets/work/film3/"},
-      {t:"ADVERTISING COMPETITION FILM — MSI",c:"corp",y:"",cn:"",media:"assets/work/msi/"},
-      {t:"COMMERCIAL FILM — PANASONIC",c:"corp",y:"",cn:"",media:"assets/work/panasonic/"},
-      {t:"BRAND FILM — KEIKYU",c:"corp",y:"",cn:"",media:"assets/work/keikyu/"},
-      {t:"ORIGINAL MOTION PICTURE THEME — MUSIC VIDEO",c:"corp",y:"",cn:"",media:"assets/work/mv/"},
-      {t:"CORPORATE BRAND FILM — CEL CORPORATION",c:"corp",y:"",cn:"",media:"assets/work/serecoop/"},
-      {t:"CAMPAIGN FILM — TWQR",c:"corp",y:"",cn:"",media:"assets/work/twqr/",o:"tall",focus:"50% 22%"},
-      {t:"SHORT-FORM SERIES — THE PRIVATE ARREST YOUTUBER VS. THE ISLAND",c:"corp",y:"",cn:"",media:"assets/work/shortdrama1/",o:"tall"},
-      {t:"SHORT-FORM SERIES — FORBIDDEN",c:"corp",y:"",cn:"",media:"assets/work/shortdrama2/",o:"tall"},
-      {t:"LIVE VISUALS — TAIPEI LEGACY",c:"corp",y:"",cn:"",media:"assets/work/vj/"},
-      {t:"PROPERTY FILM — REAL ESTATE",c:"corp",y:"",cn:"",media:"assets/work/xinzhu/"},
-      {t:"EDUCATIONAL ANIMATION — HANLIN EDUCATION",c:"corp",y:"",cn:"",media:"assets/work/hanlin/"}
+      {t:"FILM “OKAMURO-SAN”",c:"corp",y:"2022",cn:"",media:"assets/work/film1/",role:"監督 / 脚本 / ポストプロダクション / 音楽制作 / サウンドデザイン",hover:true},
+      {t:"FILM “DEMON VIRUS”",c:"corp",y:"2025",cn:"",media:"assets/work/film2/",role:"監督 / 脚本 / ポストプロダクション / 音楽制作 / サウンドデザイン",hover:true,o:"tall"},
+      {t:"FILM “WANDANCE”",c:"corp",y:"2026",cn:"",media:"assets/work/film3/",role:"ポストプロダクション",hover:true},
+      {t:"ADVERTISING COMPETITION FILM — MSI",c:"corp",y:"2025",cn:"",media:"assets/work/msi/",role:"3DCG / モーショングラフィックス / サウンドデザイン",hover:true},
+      {t:"COMMERCIAL FILM — PANASONIC",c:"corp",y:"2026",cn:"",media:"assets/work/panasonic/",role:"ポストプロダクション",hover:true},
+      {t:"BRAND FILM — KEIKYU",c:"corp",y:"2026",cn:"",media:"assets/work/keikyu/",role:"ポストプロダクション",hover:true},
+      {t:"ORIGINAL MOTION PICTURE THEME — MUSIC VIDEO",c:"corp",y:"2022",cn:"",media:"assets/work/mv/",role:"企画 / 撮影 / ポストプロダクション",hover:true},
+      {t:"CORPORATE BRAND FILM — CEL CORPORATION",c:"corp",y:"2024",cn:"",media:"assets/work/serecoop/",role:"ポストプロダクション",hover:true},
+      {t:"CAMPAIGN FILM — TWQR",c:"corp",y:"2025",cn:"",media:"assets/work/twqr/",role:"企画 / 撮影 / ポストプロダクション",hover:true,o:"tall",focus:"50% 22%"},
+      {t:"SHORT-FORM SERIES — THE PRIVATE ARREST YOUTUBER VS. THE ISLAND",c:"corp",y:"2025",cn:"",media:"assets/work/shortdrama1/",role:"ポストプロダクション",hover:true,o:"tall"},
+      {t:"SHORT-FORM SERIES — FORBIDDEN",c:"corp",y:"2025",cn:"",media:"assets/work/shortdrama2/",role:"ポストプロダクション",hover:true,o:"tall"},
+      {t:"LIVE VISUALS — TAIPEI LEGACY",c:"corp",y:"2024",cn:"",media:"assets/work/vj/",role:"企画 / 3DCG / モーショングラフィックス / VJオペレーション",hover:true},
+      {t:"PROPERTY FILM — REAL ESTATE",c:"corp",y:"2026",cn:"",media:"assets/work/xinzhu/",role:"企画 / 撮影 / ポストプロダクション",hover:true},
+      {t:"EDUCATIONAL ANIMATION — HANLIN EDUCATION",c:"corp",y:"2026",cn:"",media:"assets/work/hanlin/",role:"2Dアニメーション / モーショングラフィックス / 音楽制作 / サウンドデザイン",hover:true}
     ]
   },
   en:{
-    "nav.work":"Work","nav.cap":"Capabilities","nav.est":"Estimate","nav.contact":"Contact",
+    "nav.work":"Work","nav.cap":"Capabilities","nav.contact":"Contact",
     "hero.reel":"Showreel 2026","hero.scroll":"Scroll",
     "mark.tagline":"where motion feels alive",
     "mark.lede":"A motion studio based in Taipei, Osaka and Tokyo — VFX, 3D CG, motion graphics, music videos, live VJ and brand films. We carry every project from concept and shoot through previs and post to final delivery, all under one roof.","cat.vfx":"VFX","cat.live":"Live Visuals","cat.cg":"3D CG","cat.film":"Film",
     "cap.eyebrow":"Capabilities","cap.title":"What we do",
     "cap.lede":"Concept, script, shoot, edit and delivery, handled in house. Open a row for detail.",
-    
-    
-    
-    
-    "est.eyebrow":"Estimate","est.title":"Rough estimate","est.lede":"A few taps gives you a ballpark. We confirm the details with you afterwards.","est.rough":"Rough range","est.back":"Back","est.next":"Next",
     "contact.eyebrow":"Contact","contact.title":"Let's talk",
     "contact.reply":"We reply within 2 business days",
     "contact.lede":"Early-stage conversations and technical tests are welcome. Send dates, venue, runtime and rough budget, and our first reply will include a concrete way forward.",
@@ -1155,34 +1024,29 @@ const T = {
     ],
     work:[
       {t:"COMPUTEX FORUM 2026 — SIEMENS",c:"corp",y:"2026",cn:"Corporate Concept Film",role:"3D CG / Motion Graphics / Sound Design",media:"assets/work/computex_2026_siemens/",hover:true,tabDir:"assets/work/computex_2026_siemens/tab/images/",embedUrl:"https://player.mediadelivery.net/embed/742300/5c269504-cc6b-426d-9149-b50ccb3fcda1?autoplay=true&loop=false&muted=true&preload=true&responsive=true",tabImages:["1.png","2.png","3.png","4.png"],detailDesc:"Produced the opening film for Siemens' keynote presentation at COMPUTEX FORUM 2026. We translated Siemens' vision of the future — built around AI, Automation and Mobility — into a fully 3D CG film, handling every stage in house: concept and creative direction, previs, 3D CG production, visual direction, compositing and final delivery. The film builds a future where space, mobility, infrastructure and automation flow together seamlessly, through precise 3D craft and dynamic camera work. Rather than stating complex technology as a message, we elevated it into visuals an audience can grasp instantly — a brand film with the impact a world-class tech stage demands."},
-      {t:"FILM “OKAMURO-SAN”",c:"corp",y:"",cn:"",media:"assets/work/film1/"},
-      {t:"FILM “DEMON VIRUS”",c:"corp",y:"",cn:"",media:"assets/work/film2/",o:"tall"},
-      {t:"FILM “WANDANCE”",c:"corp",y:"",cn:"",media:"assets/work/film3/"},
-      {t:"ADVERTISING COMPETITION FILM — MSI",c:"corp",y:"",cn:"",media:"assets/work/msi/"},
-      {t:"COMMERCIAL FILM — PANASONIC",c:"corp",y:"",cn:"",media:"assets/work/panasonic/"},
-      {t:"BRAND FILM — KEIKYU",c:"corp",y:"",cn:"",media:"assets/work/keikyu/"},
-      {t:"ORIGINAL MOTION PICTURE THEME — MUSIC VIDEO",c:"corp",y:"",cn:"",media:"assets/work/mv/"},
-      {t:"CORPORATE BRAND FILM — CEL CORPORATION",c:"corp",y:"",cn:"",media:"assets/work/serecoop/"},
-      {t:"CAMPAIGN FILM — TWQR",c:"corp",y:"",cn:"",media:"assets/work/twqr/",o:"tall",focus:"50% 22%"},
-      {t:"SHORT-FORM SERIES — THE PRIVATE ARREST YOUTUBER VS. THE ISLAND",c:"corp",y:"",cn:"",media:"assets/work/shortdrama1/",o:"tall"},
-      {t:"SHORT-FORM SERIES — FORBIDDEN",c:"corp",y:"",cn:"",media:"assets/work/shortdrama2/",o:"tall"},
-      {t:"LIVE VISUALS — TAIPEI LEGACY",c:"corp",y:"",cn:"",media:"assets/work/vj/"},
-      {t:"PROPERTY FILM — REAL ESTATE",c:"corp",y:"",cn:"",media:"assets/work/xinzhu/"},
-      {t:"EDUCATIONAL ANIMATION — HANLIN EDUCATION",c:"corp",y:"",cn:"",media:"assets/work/hanlin/"}
+      {t:"FILM “OKAMURO-SAN”",c:"corp",y:"2022",cn:"",media:"assets/work/film1/",role:"Director / Screenplay / Post-production / Music Production / Sound Design",hover:true},
+      {t:"FILM “DEMON VIRUS”",c:"corp",y:"2025",cn:"",media:"assets/work/film2/",role:"Director / Screenplay / Post-production / Music Production / Sound Design",hover:true,o:"tall"},
+      {t:"FILM “WANDANCE”",c:"corp",y:"2026",cn:"",media:"assets/work/film3/",role:"Post-production",hover:true},
+      {t:"ADVERTISING COMPETITION FILM — MSI",c:"corp",y:"2025",cn:"",media:"assets/work/msi/",role:"3D CG / Motion Graphics / Sound Design",hover:true},
+      {t:"COMMERCIAL FILM — PANASONIC",c:"corp",y:"2026",cn:"",media:"assets/work/panasonic/",role:"Post-production",hover:true},
+      {t:"BRAND FILM — KEIKYU",c:"corp",y:"2026",cn:"",media:"assets/work/keikyu/",role:"Post-production",hover:true},
+      {t:"ORIGINAL MOTION PICTURE THEME — MUSIC VIDEO",c:"corp",y:"2022",cn:"",media:"assets/work/mv/",role:"Planning / Cinematography / Post-production",hover:true},
+      {t:"CORPORATE BRAND FILM — CEL CORPORATION",c:"corp",y:"2024",cn:"",media:"assets/work/serecoop/",role:"Post-production",hover:true},
+      {t:"CAMPAIGN FILM — TWQR",c:"corp",y:"2025",cn:"",media:"assets/work/twqr/",role:"Planning / Cinematography / Post-production",hover:true,o:"tall",focus:"50% 22%"},
+      {t:"SHORT-FORM SERIES — THE PRIVATE ARREST YOUTUBER VS. THE ISLAND",c:"corp",y:"2025",cn:"",media:"assets/work/shortdrama1/",role:"Post-production",hover:true,o:"tall"},
+      {t:"SHORT-FORM SERIES — FORBIDDEN",c:"corp",y:"2025",cn:"",media:"assets/work/shortdrama2/",role:"Post-production",hover:true,o:"tall"},
+      {t:"LIVE VISUALS — TAIPEI LEGACY",c:"corp",y:"2024",cn:"",media:"assets/work/vj/",role:"Planning / 3D CG / Motion Graphics / VJ Operation",hover:true},
+      {t:"PROPERTY FILM — REAL ESTATE",c:"corp",y:"2026",cn:"",media:"assets/work/xinzhu/",role:"Planning / Cinematography / Post-production",hover:true},
+      {t:"EDUCATIONAL ANIMATION — HANLIN EDUCATION",c:"corp",y:"2026",cn:"",media:"assets/work/hanlin/",role:"2D Animation / Motion Graphics / Music Production / Sound Design",hover:true}
     ]
   },
   zh:{
-    "nav.work":"作品","nav.cap":"業務","nav.est":"報價","nav.contact":"聯繫",
+    "nav.work":"作品","nav.cap":"業務","nav.contact":"聯繫",
     "hero.reel":"作品集 2026","hero.scroll":"向下滾動",
     "mark.tagline":"where motion feels alive",
     "mark.lede":"以台北・大阪・東京為據點的影像工作室，涵蓋 VFX、3DCG、動態圖形、MV、VJ 與企業宣傳片。從企劃、拍攝、預演到後期與交付，全程一手包辦。","cat.vfx":"視覺特效","cat.live":"現場視覺","cat.cg":"三維CG","cat.film":"影片",
     "cap.eyebrow":"業務範圍","cap.title":"業務內容",
     "cap.lede":"從企劃、腳本、拍攝、剪輯到交付，全部由內部團隊完成。點擊展開查看詳情。",
-    
-    
-    
-    
-    "est.eyebrow":"報價","est.title":"概算報價","est.lede":"只要選幾個項目，即可得知大致費用。詳細條件我們會再與您確認。","est.rough":"概算","est.back":"上一步","est.next":"下一步",
     "contact.eyebrow":"聯繫我們","contact.title":"聊聊吧",
     "contact.reply":"我們會在兩個工作日內回覆",
     "contact.lede":"歡迎在企劃階段就與我們溝通，也接受單獨的技術驗證委託。提供日期、場地、時長與預算範圍，我們會在首次回覆中給出具體方案。",
@@ -1196,20 +1060,20 @@ const T = {
     ],
     work:[
       {t:"COMPUTEX FORUM 2026 — SIEMENS",c:"corp",y:"2026",cn:"企業概念影片",role:"三維CG / 動態圖形 / 聲音設計",media:"assets/work/computex_2026_siemens/",hover:true,tabDir:"assets/work/computex_2026_siemens/tab/images/",embedUrl:"https://player.mediadelivery.net/embed/742300/5c269504-cc6b-426d-9149-b50ccb3fcda1?autoplay=true&loop=false&muted=true&preload=true&responsive=true",tabImages:["1.png","2.png","3.png","4.png"],detailDesc:"為COMPUTEX FORUM 2026上西門子（SIEMENS）的主題演講製作開場影片。以「AI × 自動化 × 移動性」為主軸，將西門子描繪的未來願景以全三維CG影像呈現，並一手包辦從企劃、概念設計、預演、三維CG製作、影像演出、合成到最終交付的全部流程。透過精密的三維表現與充滿動感的運鏡，構築出空間、移動、基礎設施與自動化無縫串聯的未來世界。不僅僅是傳達複雜科技與未來願景的訊息，更將其昇華為觀眾能夠直覺感受的視覺體驗，實現了足以匹配世界級科技盛會舞台、極具震撼力的品牌影片。"},
-      {t:"FILM “OKAMURO-SAN”",c:"corp",y:"",cn:"",media:"assets/work/film1/"},
-      {t:"FILM “DEMON VIRUS”",c:"corp",y:"",cn:"",media:"assets/work/film2/",o:"tall"},
-      {t:"FILM “WANDANCE”",c:"corp",y:"",cn:"",media:"assets/work/film3/"},
-      {t:"ADVERTISING COMPETITION FILM — MSI",c:"corp",y:"",cn:"",media:"assets/work/msi/"},
-      {t:"COMMERCIAL FILM — PANASONIC",c:"corp",y:"",cn:"",media:"assets/work/panasonic/"},
-      {t:"BRAND FILM — KEIKYU",c:"corp",y:"",cn:"",media:"assets/work/keikyu/"},
-      {t:"ORIGINAL MOTION PICTURE THEME — MUSIC VIDEO",c:"corp",y:"",cn:"",media:"assets/work/mv/"},
-      {t:"CORPORATE BRAND FILM — CEL CORPORATION",c:"corp",y:"",cn:"",media:"assets/work/serecoop/"},
-      {t:"CAMPAIGN FILM — TWQR",c:"corp",y:"",cn:"",media:"assets/work/twqr/",o:"tall",focus:"50% 22%"},
-      {t:"SHORT-FORM SERIES — THE PRIVATE ARREST YOUTUBER VS. THE ISLAND",c:"corp",y:"",cn:"",media:"assets/work/shortdrama1/",o:"tall"},
-      {t:"SHORT-FORM SERIES — FORBIDDEN",c:"corp",y:"",cn:"",media:"assets/work/shortdrama2/",o:"tall"},
-      {t:"LIVE VISUALS — TAIPEI LEGACY",c:"corp",y:"",cn:"",media:"assets/work/vj/"},
-      {t:"PROPERTY FILM — REAL ESTATE",c:"corp",y:"",cn:"",media:"assets/work/xinzhu/"},
-      {t:"EDUCATIONAL ANIMATION — HANLIN EDUCATION",c:"corp",y:"",cn:"",media:"assets/work/hanlin/"}
+      {t:"FILM “OKAMURO-SAN”",c:"corp",y:"2022",cn:"",media:"assets/work/film1/",role:"導演 / 編劇 / 後期製作 / 音樂製作 / 聲音設計",hover:true},
+      {t:"FILM “DEMON VIRUS”",c:"corp",y:"2025",cn:"",media:"assets/work/film2/",role:"導演 / 編劇 / 後期製作 / 音樂製作 / 聲音設計",hover:true,o:"tall"},
+      {t:"FILM “WANDANCE”",c:"corp",y:"2026",cn:"",media:"assets/work/film3/",role:"後期製作",hover:true},
+      {t:"ADVERTISING COMPETITION FILM — MSI",c:"corp",y:"2025",cn:"",media:"assets/work/msi/",role:"三維CG / 動態圖形 / 聲音設計",hover:true},
+      {t:"COMMERCIAL FILM — PANASONIC",c:"corp",y:"2026",cn:"",media:"assets/work/panasonic/",role:"後期製作",hover:true},
+      {t:"BRAND FILM — KEIKYU",c:"corp",y:"2026",cn:"",media:"assets/work/keikyu/",role:"後期製作",hover:true},
+      {t:"ORIGINAL MOTION PICTURE THEME — MUSIC VIDEO",c:"corp",y:"2022",cn:"",media:"assets/work/mv/",role:"企劃 / 攝影 / 後期製作",hover:true},
+      {t:"CORPORATE BRAND FILM — CEL CORPORATION",c:"corp",y:"2024",cn:"",media:"assets/work/serecoop/",role:"後期製作",hover:true},
+      {t:"CAMPAIGN FILM — TWQR",c:"corp",y:"2025",cn:"",media:"assets/work/twqr/",role:"企劃 / 攝影 / 後期製作",hover:true,o:"tall",focus:"50% 22%"},
+      {t:"SHORT-FORM SERIES — THE PRIVATE ARREST YOUTUBER VS. THE ISLAND",c:"corp",y:"2025",cn:"",media:"assets/work/shortdrama1/",role:"後期製作",hover:true,o:"tall"},
+      {t:"SHORT-FORM SERIES — FORBIDDEN",c:"corp",y:"2025",cn:"",media:"assets/work/shortdrama2/",role:"後期製作",hover:true,o:"tall"},
+      {t:"LIVE VISUALS — TAIPEI LEGACY",c:"corp",y:"2024",cn:"",media:"assets/work/vj/",role:"企劃 / 三維CG / 動態圖形 / VJ現場操作",hover:true},
+      {t:"PROPERTY FILM — REAL ESTATE",c:"corp",y:"2026",cn:"",media:"assets/work/xinzhu/",role:"企劃 / 攝影 / 後期製作",hover:true},
+      {t:"EDUCATIONAL ANIMATION — HANLIN EDUCATION",c:"corp",y:"2026",cn:"",media:"assets/work/hanlin/",role:"二維動畫 / 動態圖形 / 音樂製作 / 聲音設計",hover:true}
     ]
   }
 };
@@ -1617,9 +1481,16 @@ function makeFringe(canvas, cfg){
   function placeSources(){
     const dh = docHeight();
     const vmin = Math.min(W, H);
+    const vmax = Math.max(W, H);
+    // On an ultrawide monitor the height stays the same while the width
+    // keeps growing, so sizing everything off the shorter side alone left
+    // the extra width past a normal 16:9 screen essentially uncovered — the
+    // 6 sources' reach just didn't stretch that far. Blend in some of the
+    // wider side so the reach actually grows on ultrawide screens too.
+    const reach = vmin + Math.max(0, vmax - vmin) * 0.35;
     // Sources must not touch: separation > 2x the largest radius, so the
     // nearest-source seam always falls where both fields are already zero.
-    const minSep = vmin * 0.62 * (isSmallScreen ? 0.62 : 1.0);
+    const minSep = reach * 0.62 * (isSmallScreen ? 0.62 : 1.0);
     const marginX = W*0.10, marginY = vmin*0.35;
     const pts = [];
     let tries=0;
@@ -1641,7 +1512,7 @@ function makeFringe(canvas, cfg){
     for(let i=0;i<NUM;i++){
       src[i*2]   = pts[i].x*DPR;
       src[i*2+1] = pts[i].y*DPR;
-      range[i]   = vmin*DPR*(0.40 + Math.random()*0.14)*rangeScale;   // localised, merges at edges
+      range[i]   = reach*DPR*(0.40 + Math.random()*0.14)*rangeScale;   // localised, merges at edges
       kArr[i]    = (0.085 + Math.random()*0.032)/DPR;      // denser contours fill the page
       // hairline contours — thinner still on phones, where the higher
       // render resolution otherwise makes each line read as thick/heavy
@@ -1687,7 +1558,6 @@ function makeFringe(canvas, cfg){
                                         // gaps between the lines for waves to leak through
     '.work-title',
     '#capabilities .sec-head', '#caps',
-    '#estimate .sec-head', '#estimate .est',
     '#contact .wrap',
     'footer'
   ];
@@ -2229,7 +2099,6 @@ function setLang(lang){
   buildWork(L); buildCaps(L);
   try{ localStorage.setItem('ds-lang', lang); }catch(e){}
   // copy reflowed → text masks must be re-measured
-  if(window.__estimateRerender) window.__estimateRerender();
   requestAnimationFrame(()=>{ if(window.__updateWaveMasks) window.__updateWaveMasks(); });
 }
 document.querySelectorAll('.lang button').forEach(b=>
@@ -2259,281 +2128,6 @@ new IntersectionObserver(es=>{
 },{threshold:.35}).observe(document.getElementById('mark'));
 
 
-/* ============================================================
-   ESTIMATE — a preset-driven quote builder.
-
-   Pricing is deterministic, not generated: a base rate per genre is
-   multiplied by the choices the client makes. That keeps the number a
-   promise the studio can stand behind, rather than something a model
-   improvised. Every figure is expressed as a RANGE, because a quote given
-   before a brief exists should read as an order of magnitude, not a bid.
-   ============================================================ */
-(function(){
-  const stage   = document.getElementById('estStage');
-  if(!stage) return;
-  const barEl   = document.getElementById('estBar');
-  const stepEl  = document.getElementById('estStepLabel');
-  const amountEl= document.getElementById('estAmount');
-  const backBtn = document.getElementById('estBack');
-  const nextBtn = document.getElementById('estNext');
-
-  // --- pricing model -------------------------------------------------
-  // base = the low end of a typical project in that genre, in JPY.
-  // Every modifier is a multiplier so the maths stays transparent.
-  const GENRES = {
-    corp:  { base: 600000,  label:{ja:'企業PV / ブランドフィルム',en:'Brand / Corporate Film',zh:'企業宣傳片／品牌影片'} },
-    mv:    { base: 800000,  label:{ja:'ミュージックビデオ',      en:'Music Video',            zh:'音樂錄影帶'} },
-    cg:    { base: 700000,  label:{ja:'3DCG / モーショングラフィックス', en:'3D CG / Motion Graphics', zh:'三維CG／動態圖形'} },
-    vfx:   { base: 500000,  label:{ja:'VFX / 視覚効果',          en:'VFX',                    zh:'視覺特效'} },
-    vj:    { base: 400000,  label:{ja:'VJ / ライブビジュアル',    en:'VJ / Live Visuals',      zh:'VJ／現場視覺'} }
-  };
-
-  const STEPS = [
-    {
-      id:'genre', type:'single',
-      q:{ja:'どの種類の映像をお探しですか？',en:'What kind of work do you need?',zh:'您需要哪一類影像？'},
-      hint:{ja:'まずは大まかな種類を選んでください。',en:'Start with the broad category.',zh:'請先選擇大致的類型。'},
-      opts:[
-        {v:'corp', m:1, t:{ja:'企業PV / ブランドフィルム',en:'Brand / Corporate Film',zh:'企業宣傳片／品牌影片'},
-         d:{ja:'会社紹介、製品紹介、展示会、採用',en:'Company, product, trade show, recruiting',zh:'公司介紹、產品、展會、招募'}},
-        {v:'mv', m:1, t:{ja:'ミュージックビデオ',en:'Music Video',zh:'音樂錄影帶'},
-         d:{ja:'アーティストMV、リリックビデオ',en:'Artist MV, lyric video',zh:'藝人MV、歌詞影片'}},
-        {v:'cg', m:1, t:{ja:'3DCG / モーショングラフィックス',en:'3D CG / Motion Graphics',zh:'三維CG／動態圖形'},
-         d:{ja:'フル3D、製品可視化、シミュレーション',en:'Full 3D, product visualisation, simulation',zh:'全三維、產品可視化、模擬'}},
-        {v:'vfx', m:1, t:{ja:'VFX / 視覚効果',en:'VFX',zh:'視覺特效'},
-         d:{ja:'合成、背景消し、CG合成',en:'Compositing, cleanup, CG integration',zh:'合成、清理、CG整合'}},
-        {v:'vj', m:1, t:{ja:'VJ / ライブビジュアル',en:'VJ / Live Visuals',zh:'VJ／現場視覺'},
-         d:{ja:'ライブ、フェス、LED演出',en:'Concerts, festivals, LED',zh:'演唱會、音樂節、LED'}}
-      ]
-    },
-    {
-      id:'scale', type:'single',
-      q:{ja:'規模感はどのくらいですか？',en:'What scale are you working at?',zh:'專案規模大約多大？'},
-      hint:{ja:'尺や本数のイメージで選んでください。',en:'Think runtime, or number of deliverables.',zh:'可依片長或支數選擇。'},
-      opts:[
-        {v:'s', m:0.7,  t:{ja:'小規模',en:'Small',zh:'小型'},  d:{ja:'〜60秒 / SNS向け1本',en:'Up to 60s, one social cut',zh:'60秒內／一支社群影片'}},
-        {v:'m', m:1.0,  t:{ja:'標準',en:'Standard',zh:'標準'},  d:{ja:'1〜3分 / 一般的な尺',en:'1-3 min, typical runtime',zh:'1〜3分鐘'}},
-        {v:'l', m:1.7,  t:{ja:'大規模',en:'Large',zh:'大型'},   d:{ja:'3分以上 / 複数本の展開',en:'3 min+, multiple versions',zh:'3分鐘以上／多支版本'}}
-      ]
-    },
-    {
-      id:'prod', type:'multi',
-      q:{ja:'必要な作業を選んでください',en:'Which parts do you need from us?',zh:'需要我們負責哪些部分？'},
-      hint:{ja:'複数選択できます。すでに素材がある場合は撮影を外してください。',en:'Choose all that apply. Skip the shoot if you already have footage.',zh:'可複選。若已有素材，可略過拍攝。'},
-      opts:[
-        {v:'plan',  m:0.15, t:{ja:'企画・構成',en:'Concept & script',zh:'企劃與腳本'},   d:{ja:'ゼロから設計します',en:'We design it from scratch',zh:'從零開始設計'}},
-        {v:'shoot', m:0.45, t:{ja:'撮影',en:'Shooting',zh:'拍攝'},                       d:{ja:'現地撮影・機材込み',en:'On location, crew and gear',zh:'實地拍攝、含器材'}},
-        {v:'cg',    m:0.55, t:{ja:'3DCG制作',en:'3D CG',zh:'三維CG製作'},                d:{ja:'モデリング〜レンダリング',en:'Modelling through render',zh:'建模至算圖'}},
-        {v:'vfx',   m:0.40, t:{ja:'VFX・合成',en:'VFX & compositing',zh:'VFX與合成'},     d:{ja:'背景消し、CG合成',en:'Cleanup, CG integration',zh:'清理、CG整合'}},
-        {v:'edit',  m:0.20, t:{ja:'編集・カラー',en:'Edit & grade',zh:'剪輯與調色'},       d:{ja:'編集、カラーグレーディング',en:'Editing, colour grading',zh:'剪輯、調色'}},
-        {v:'sound', m:0.12, t:{ja:'サウンド',en:'Sound',zh:'聲音'},                       d:{ja:'音響設計、選曲',en:'Sound design, music',zh:'音效設計、選曲'}}
-      ]
-    },
-    {
-      id:'timing', type:'single',
-      q:{ja:'いつまでに必要ですか？',en:'When do you need it?',zh:'希望何時完成？'},
-      hint:{ja:'短納期の場合、体制を増やすため費用が上がります。',en:'A rush job means more people on it, which costs more.',zh:'急件需增加人力，費用會提高。'},
-      opts:[
-        {v:'rush', m:1.4, t:{ja:'1ヶ月以内',en:'Within a month',zh:'一個月內'},   d:{ja:'特急対応',en:'Rush',zh:'急件'}},
-        {v:'norm', m:1.0, t:{ja:'1〜3ヶ月',en:'One to three months',zh:'一至三個月'}, d:{ja:'標準的な進行',en:'Standard schedule',zh:'標準排程'}},
-        {v:'flex', m:0.9, t:{ja:'3ヶ月以上 / 相談',en:'Three months+, flexible',zh:'三個月以上／可討論'}, d:{ja:'余裕のある進行',en:'Relaxed schedule',zh:'較充裕的排程'}}
-      ]
-    },
-    { id:'contact', type:'form',
-      q:{ja:'お見積もりの送り先',en:'Where should we send it?',zh:'請留下聯絡方式'},
-      hint:{ja:'内容を確認のうえ、2営業日以内にご連絡します。',en:'We will review and reply within two business days.',zh:'我們將於兩個工作日內回覆。'}
-    }
-  ];
-
-  const state = { step:0, genre:null, scale:null, prod:new Set(), timing:null,
-                  name:'', email:'', company:'', note:'' };
-
-  const lang = () => document.body.dataset.lang || 'ja';
-  const tr = o => (o && (o[lang()] || o.ja)) || '';
-
-  function multiplier(){
-    const g = GENRES[state.genre];
-    if(!g) return null;
-    let m = 1;
-    const sc = STEPS[1].opts.find(o=>o.v===state.scale);
-    if(sc) m *= sc.m;
-    let prodSum = 0;
-    STEPS[2].opts.forEach(o=>{ if(state.prod.has(o.v)) prodSum += o.m; });
-    // the selected tasks scale the base; with nothing chosen we still assume
-    // a minimum viable scope rather than quoting zero
-    m *= (0.5 + (prodSum || 0.4));
-    const tm = STEPS[3].opts.find(o=>o.v===state.timing);
-    if(tm) m *= tm.m;
-    return g.base * m;
-  }
-
-  const yen = n => '¥' + Math.round(n/10000).toLocaleString() + '万';
-
-  function updateTotal(){
-    const v = multiplier();
-    if(!v || !state.genre){ amountEl.textContent = '—'; return; }
-    // presented as a range: -15% / +30% around the computed figure
-    amountEl.textContent = yen(v*0.85) + ' 〜 ' + yen(v*1.3);
-  }
-
-  function render(){
-    const step = STEPS[state.step];
-    const pct = (state.step/(STEPS.length-1))*100;
-    barEl.style.width = pct + '%';
-    stepEl.textContent = (state.step+1) + ' / ' + STEPS.length;
-
-    let html = `<p class="est-q">${tr(step.q)}</p><p class="est-hint">${tr(step.hint)}</p>`;
-
-    if(step.type === 'single' || step.type === 'multi'){
-      html += '<div class="est-opts">';
-      step.opts.forEach(o=>{
-        const on = step.type==='multi'
-          ? state.prod.has(o.v)
-          : state[step.id] === o.v;
-        html += `<button type="button" class="est-opt" data-v="${o.v}" aria-pressed="${on}">
-          <b>${tr(o.t)}</b><span>${tr(o.d)}</span></button>`;
-      });
-      html += '</div>';
-    }
-
-    if(step.type === 'form'){
-      const g = GENRES[state.genre];
-      const picked = STEPS[2].opts.filter(o=>state.prod.has(o.v)).map(o=>tr(o.t)).join('、') || '—';
-      const sc = STEPS[1].opts.find(o=>o.v===state.scale);
-      const tm = STEPS[3].opts.find(o=>o.v===state.timing);
-      const L = {
-        genre:{ja:'種類',en:'Type',zh:'類型'},
-        scale:{ja:'規模',en:'Scale',zh:'規模'},
-        prod:{ja:'作業',en:'Scope',zh:'項目'},
-        time:{ja:'時期',en:'Timing',zh:'時程'}
-      };
-      html += `<dl class="est-summary">
-        <div class="est-line"><dt>${tr(L.genre)}</dt><dd>${g?tr(g.label):'—'}</dd><em></em></div>
-        <div class="est-line"><dt>${tr(L.scale)}</dt><dd>${sc?tr(sc.t):'—'}</dd><em></em></div>
-        <div class="est-line"><dt>${tr(L.prod)}</dt><dd>${picked}</dd><em></em></div>
-        <div class="est-line"><dt>${tr(L.time)}</dt><dd>${tm?tr(tm.t):'—'}</dd><em></em></div>
-      </dl>
-      <div class="est-row">
-        <input class="est-field" id="estName"  placeholder="${lang()==='ja'?'お名前':lang()==='zh'?'姓名':'Name'}" value="${state.name}">
-        <input class="est-field" id="estEmail" type="email" placeholder="${lang()==='ja'?'メールアドレス':lang()==='zh'?'電子郵件':'Email'}" value="${state.email}">
-      </div>
-      <div style="margin-top:12px">
-        <input class="est-field" id="estCompany" placeholder="${lang()==='ja'?'会社名・団体名（任意）':lang()==='zh'?'公司名稱（選填）':'Company (optional)'}" value="${state.company}">
-      </div>
-      <div style="margin-top:12px">
-        <textarea class="est-field" id="estNote" rows="3" placeholder="${lang()==='ja'?'補足があればご記入ください（任意）':lang()==='zh'?'補充說明（選填）':'Anything else we should know (optional)'}">${state.note}</textarea>
-      </div>
-      <p class="est-note">${lang()==='ja'
-        ? 'ここに表示される金額は選択内容にもとづく概算です。内容を伺ったうえで正式なお見積もりをお出しします。'
-        : lang()==='zh'
-        ? '此處顯示的金額為依選項推算的概算。我們會在了解需求後提供正式報價。'
-        : 'The figure shown is an estimate based on your selections. A formal quote follows once we understand the brief.'}</p>`;
-    }
-
-    stage.innerHTML = html;
-
-    backBtn.disabled = state.step === 0;
-    const last = state.step === STEPS.length-1;
-    nextBtn.textContent = last
-      ? (lang()==='ja'?'送信する':lang()==='zh'?'送出':'Send')
-      : (lang()==='ja'?'次へ':lang()==='zh'?'下一步':'Next');
-    updateTotal();
-    syncNext();
-  }
-
-  function syncNext(){
-    const step = STEPS[state.step];
-    let ok = true;
-    if(step.type==='single') ok = !!state[step.id];
-    if(step.type==='multi')  ok = state.prod.size > 0;
-    if(step.type==='form'){
-      const e = document.getElementById('estEmail');
-      ok = !!(e && /\S+@\S+\.\S+/.test(e.value));
-    }
-    nextBtn.disabled = !ok;
-  }
-
-  stage.addEventListener('click', e=>{
-    const btn = e.target.closest('.est-opt');
-    if(!btn) return;
-    const step = STEPS[state.step];
-    const v = btn.dataset.v;
-    if(step.type==='multi'){
-      state.prod.has(v) ? state.prod.delete(v) : state.prod.add(v);
-      btn.setAttribute('aria-pressed', state.prod.has(v));
-    } else {
-      state[step.id] = v;
-      stage.querySelectorAll('.est-opt').forEach(b=>b.setAttribute('aria-pressed','false'));
-      btn.setAttribute('aria-pressed','true');
-    }
-    updateTotal(); syncNext();
-  });
-
-  stage.addEventListener('input', e=>{
-    if(e.target.id==='estName')    state.name = e.target.value;
-    if(e.target.id==='estEmail')   state.email = e.target.value;
-    if(e.target.id==='estCompany') state.company = e.target.value;
-    if(e.target.id==='estNote')    state.note = e.target.value;
-    syncNext();
-  });
-
-  backBtn.addEventListener('click', ()=>{
-    if(state.step>0){ state.step--; render(); }
-  });
-
-  nextBtn.addEventListener('click', ()=>{
-    if(state.step < STEPS.length-1){ state.step++; render(); return; }
-    submit();
-  });
-
-  function submit(){
-    const g = GENRES[state.genre];
-    const sc = STEPS[1].opts.find(o=>o.v===state.scale);
-    const tm = STEPS[3].opts.find(o=>o.v===state.timing);
-    const picked = STEPS[2].opts.filter(o=>state.prod.has(o.v)).map(o=>tr(o.t)).join(', ');
-    const v = multiplier();
-    const range = yen(v*0.85) + ' - ' + yen(v*1.3);
-
-    const body = [
-      'DOUBLE SLIT — Estimate request',
-      '',
-      'Type:    ' + (g?tr(g.label):''),
-      'Scale:   ' + (sc?tr(sc.t):''),
-      'Scope:   ' + picked,
-      'Timing:  ' + (tm?tr(tm.t):''),
-      'Range:   ' + range,
-      '',
-      'Name:    ' + state.name,
-      'Email:   ' + state.email,
-      'Company: ' + state.company,
-      '',
-      'Notes:',
-      state.note || '-'
-    ].join('\n');
-
-    // No server is involved: the request opens in the visitor's own mail
-    // client, pre-filled. That keeps the site fully static, and means the
-    // enquiry arrives from the client's real address so replies just work.
-    const subject = 'Estimate request — ' + (g?tr(g.label):'DOUBLE SLIT');
-    location.href = 'mailto:doubleslittw@gmail.com'
-      + '?subject=' + encodeURIComponent(subject)
-      + '&body='    + encodeURIComponent(body);
-
-    stage.innerHTML = `<div class="est-done">
-      <h3>${lang()==='ja'?'ありがとうございます':lang()==='zh'?'感謝您':'Thank you'}</h3>
-      <p>${lang()==='ja'
-        ? 'メールソフトが開きます。そのまま送信してください。'
-        : lang()==='zh'
-        ? '將開啟您的郵件軟體，請直接寄出。'
-        : 'Your mail app will open with everything filled in — just hit send.'}</p></div>`;
-    backBtn.disabled = true; nextBtn.disabled = true;
-    barEl.style.width = '100%';
-  }
-
-  render();
-  // rebuild when the language changes so the whole flow follows suit
-  window.__estimateRerender = render;
-})();
 
 const burger=document.getElementById('burger');
 burger.addEventListener('click',()=>{
