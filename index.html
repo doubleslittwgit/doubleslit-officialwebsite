@@ -2027,6 +2027,25 @@ function buildWork(L){
             a.classList.add('is-active'); play();
           }
         });
+        // Touch devices have no hover, so instead of waiting for a tap, the
+        // preview auto-plays once the tile scrolls into roughly the centre
+        // band of the screen (and pauses again once it drifts out) — tapping
+        // still works too, as a manual override.
+        if(!matchMedia('(hover: hover)').matches && 'IntersectionObserver' in window){
+          const tileIO = new IntersectionObserver(entries=>{
+            entries.forEach(entry=>{
+              if(entry.isIntersecting){
+                document.querySelectorAll('.tile.is-active').forEach(t=>{
+                  if(t !== a){ t.classList.remove('is-active'); t.querySelector('.tile-hover')?.pause(); }
+                });
+                a.classList.add('is-active'); play();
+              } else {
+                a.classList.remove('is-active'); pause();
+              }
+            });
+          }, { rootMargin: '-42% 0px -42% 0px', threshold: 0 });
+          tileIO.observe(a);
+        }
       } else if(p.embedUrl){
         a.addEventListener('click', e=>{ e.preventDefault(); openDetail(p); });
       }
@@ -2201,8 +2220,13 @@ import { GLTFLoader } from './assets/jsm/loaders/GLTFLoader.js';
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
   camera.position.set(0, 0.1, 6.5);
 
-  const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  // Phones get a lighter render pipeline: no antialiasing (barely visible at
+  // this element's size, but not free) and a lower pixel-ratio ceiling —
+  // this model now carries a lot more material/texture work than it used to.
+  const isMobile3D = Math.min(innerWidth, innerHeight) <= 900
+                   || matchMedia('(pointer: coarse)').matches;
+  const renderer = new THREE.WebGLRenderer({ antialias: !isMobile3D, alpha:true });
+  renderer.setPixelRatio(Math.min(isMobile3D ? 1.5 : 2, devicePixelRatio));
   host.appendChild(renderer.domElement);
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.55));
@@ -2269,7 +2293,7 @@ import { GLTFLoader } from './assets/jsm/loaders/GLTFLoader.js';
   // how small these faces actually render on screen. The UV mapping for
   // these faces comes in upside-down AND mirrored, so the same canvas pass
   // also rotates each photo a full 180° (both axes) to correct it.
-  function downscaleImage(img, maxDim = 720){
+  function downscaleImage(img, maxDim = isMobile3D ? 480 : 720){
     const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
     const scale = Math.min(1, maxDim / Math.max(w, h));
     const canvas = document.createElement('canvas');
@@ -2413,9 +2437,12 @@ import { GLTFLoader } from './assets/jsm/loaders/GLTFLoader.js';
       // slideshow faces get their real textures once each folder's photos
       // have been probed — they show the placeholder colour above until then
       console.info(`[slideshow] matched ${nineSixteenMeshes.length} face(s) for 9:16random, ${wideMeshes.length} for widerandom`);
+      // Swapping textures costs a GPU upload every time — on phones, swap
+      // less often to cut that cost down (photos are already smaller too).
+      const cycleMs = isMobile3D ? 2500 : 1500;
       if(nineSixteenMeshes.length){
         loadImageSequence('./assets/textures/images/916random', 'random').then(imgs=>{
-          const cycler = makeImageCycler(imgs, nineSixteenMeshes.length, 1500);
+          const cycler = makeImageCycler(imgs, nineSixteenMeshes.length, cycleMs);
           cyclerControllers.push(cycler);
           nineSixteenMeshes.forEach((o, i)=>{
             if(!cycler.textures[i]) return;
@@ -2425,7 +2452,7 @@ import { GLTFLoader } from './assets/jsm/loaders/GLTFLoader.js';
       }
       if(wideMeshes.length){
         loadImageSequence('./assets/textures/images/wide', 'wide').then(imgs=>{
-          const cycler = makeImageCycler(imgs, wideMeshes.length, 1500);
+          const cycler = makeImageCycler(imgs, wideMeshes.length, cycleMs);
           cyclerControllers.push(cycler);
           wideMeshes.forEach((o, i)=>{
             if(!cycler.textures[i]) return;
